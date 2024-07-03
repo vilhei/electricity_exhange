@@ -1,0 +1,12 @@
+[package]
+name = "shared"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+corncobs = "0.1.3"
+crc = "3.2.1"
+heapless = { version = "0.8.0", features = ["serde"] }
+postcard = { version = "1.0.8", default-features = false, features = ["crc", "heapless", "use-crc"] }
+serde = { version = "1.0.203", default-features = false, features = ["derive"] }
+ssmarshal = { version = "1.0.0", default-features = false }

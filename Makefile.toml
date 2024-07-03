@@ -1,0 +1,12 @@
+[tasks.build_one]
+command = "cargo"
+args = ["build"]
+
+[tasks.build]
+script_runner = "@duckscript"
+script = '''
+cd ./esp32c3
+cm_run_task build_one
+cd ../host
+cm_run_task build_one
+'''

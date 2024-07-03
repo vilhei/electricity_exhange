@@ -1,0 +1,10 @@
+[package]
+name = "host"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+shared = { path = "../shared/" }
+
+serialport = "4.4.0"
+heapless = "0.8.0"
