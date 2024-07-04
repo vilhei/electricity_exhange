@@ -2,6 +2,10 @@
 command = "cargo"
 args = ["build"]
 
+[tasks.run_one]
+command = "cargo"
+args = ["run"]
+
 [tasks.build]
 script_runner = "@duckscript"
 script = '''
@@ -9,4 +13,13 @@ cd ./esp32c3
 cm_run_task build_one
 cd ../host
 cm_run_task build_one
+'''
+
+[tasks.run]
+script_runner = "@duckscript"
+script = '''
+cd ./esp32c3
+cm_run_task run_one
+cd ../host
+cm_run_task run_one
 '''

@@ -1,6 +1,7 @@
 [target.riscv32imc-unknown-none-elf]
 # runner = "probe-rs run --chip esp32c3"
-runner = "espflash flash --monitor"
+runner = "espflash flash"
+# runner = "espflash flash --monitor"
 # runner = "espflash --format direct-boot --monitor"
 
 [build]
@@ -11,9 +12,15 @@ rustflags = [
     # NOTE: May negatively impact performance of produced code
     "-C",
     "force-frame-pointers",
+    "-C",
+    "link-arg=-Trom_functions.x",
 ]
 
 target = "riscv32imc-unknown-none-elf"
 
 [unstable]
 build-std = ["core"]
+
+[env]
+WIFI_SSID = "default"
+WIFI_PASSWORD = "default"

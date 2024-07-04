@@ -142,6 +142,7 @@ dependencies = [
 name = "host"
 version = "0.1.0"
 dependencies = [
+ "corncobs",
  "heapless 0.8.0",
  "serialport",
  "shared",

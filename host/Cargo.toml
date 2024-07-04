@@ -8,3 +8,4 @@ shared = { path = "../shared/" }
 
 serialport = "4.4.0"
 heapless = "0.8.0"
+corncobs = "0.1.3"

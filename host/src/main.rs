@@ -1,6 +1,8 @@
 use std::{str::FromStr, thread::sleep, time::Duration};
 
-use shared::{serialize_crc_cobs, Message, WifiInfo, IN_SIZE};
+use shared::{
+    deserialize_crc_cobs, serialize_crc_cobs, Message, Response, WifiInfo, IN_SIZE, OUT_SIZE,
+};
 
 fn main() {
     let ports = serialport::available_ports().expect("No ports found");
@@ -27,18 +29,22 @@ fn main() {
     ));
     let mut out_buf = [0u8; IN_SIZE];
     let serialized_obj = serialize_crc_cobs::<Message, IN_SIZE>(test_object, &mut out_buf);
-    let mut s_buf = String::new();
+    // let mut s_buf = String::new();
     loop {
-        if let Ok(m) = port.read(&mut buf) {
-            println!(
-                "Got message from esp : \n {}",
-                String::from_utf8(buf.to_vec()).unwrap()
-            );
-        }
-
-        // println!("{buf:?}");
         let _ = port.write(serialized_obj);
-        println!("{i}");
+        let mut read_buf = [0u8; 1];
+        let mut response_buf = Vec::new();
+        loop {
+            if port.read_exact(&mut read_buf).is_ok() {
+                response_buf.push(read_buf[0]);
+                if read_buf[0] == corncobs::ZERO {
+                    break;
+                }
+            }
+        }
+        let response = deserialize_crc_cobs::<Response>(&response_buf);
+        println!("{response:?}");
+
         sleep(Duration::from_millis(200));
         i = (i + 1) % 255;
     }
