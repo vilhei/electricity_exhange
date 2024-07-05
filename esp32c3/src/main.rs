@@ -1,34 +1,20 @@
 #![no_std]
 #![no_main]
+#![feature(type_alias_impl_trait)]
 
-//! Embassy SPI
-//!
-//! Folowing pins are used:
-//! SCLK    GPIO0
-//! MISO    GPIO2
-//! MOSI    GPIO4
-//! CS      GPIO5
-//!
-//! Depending on your target and the board you are using you have to change the
-//! pins.
-//!
-//! Connect MISO and MOSI pins to see the outgoing data is read as incoming
-//! data.
-//!
-//! This is an example of running the embassy executor with SPI.
-
-//% CHIPS: esp32 esp32c2 esp32c3 esp32c6 esp32h2 esp32s2 esp32s3
-//% FEATURES: async embassy embassy-time-timg0 embassy-generic-timers
-
-use core::any::type_name;
+use core::{any::type_name, str::from_utf8};
 use display_interface_spi::SPIInterface;
-use electricity_exhange::styles::TEXT_STYLE;
+use electricity_exhange::{styles::TEXT_STYLE, wifi};
 use embassy_executor::Spawner;
+use embassy_net::{
+    dns::DnsSocket,
+    tcp::client::{TcpClient, TcpClientState},
+};
 use embassy_sync::{
     blocking_mutex::raw::NoopRawMutex,
     channel::{Channel, Receiver, Sender},
 };
-use embassy_time::{Delay, Duration, Timer};
+use embassy_time::{Delay, Duration, Ticker, Timer};
 use embedded_graphics::{
     draw_target::DrawTarget,
     geometry::Point,
@@ -48,6 +34,7 @@ use esp_hal::{
     prelude::*,
     riscv::asm::wfi,
     rng::Rng,
+    rsa::Rsa,
     spi::{
         master::{prelude::*, Spi},
         SpiMode,
@@ -63,6 +50,7 @@ use mipidsi::{
     models::ST7789,
     options::{ColorInversion, Orientation, Rotation},
 };
+use reqwless::request::RequestBuilder;
 use shared::{deserialize_crc_cobs, serialize_crc_cobs, Message, Response, IN_SIZE, OUT_SIZE};
 use static_cell::StaticCell;
 
@@ -128,6 +116,15 @@ fn type_of<T>(_: T) -> &'static str {
     type_name::<T>()
 }
 
+#[embassy_executor::task]
+async fn dummy() {
+    let mut ticker = Ticker::every(Duration::from_millis(500));
+    loop {
+        println!("Hello dummy");
+        ticker.next().await;
+    }
+}
+
 #[main]
 async fn main(spawner: Spawner) {
     // println!("Init!");
@@ -180,6 +177,35 @@ async fn main(spawner: Spawner) {
 
     let broker_channel = BROKER_CHANNEL.init(Channel::new());
     let writer_channel = WRITER_CHANNEL.init(Channel::new());
+
+    let stack = wifi::connect(
+        &spawner,
+        peripherals.RNG,
+        peripherals.SYSTIMER,
+        peripherals.RADIO_CLK,
+        &clocks,
+        peripherals.WIFI,
+    )
+    .await
+    .unwrap();
+
+    let state = TcpClientState::<1, 4096, 4096>::new();
+    let tcp_client = TcpClient::new(stack, &state);
+    let dns_socket = DnsSocket::new(stack);
+
+    let mut client = reqwless::client::HttpClient::new(&tcp_client, &dns_socket);
+
+    let mut buffer = [0u8; 4096];
+    let mut request = client
+        .request(reqwless::request::Method::GET, "http://httpbin.org/get")
+        .await
+        .unwrap()
+        .content_type(reqwless::headers::ContentType::ApplicationJson);
+    // .headers(&[("Host", "google.com")]);
+    let response = request.send(&mut buffer).await.unwrap();
+    let body = from_utf8(response.body().read_to_end().await.unwrap()).unwrap();
+
+    println!("{:#?}", body);
 
     spawner
         .spawn(read_serial(rx, broker_channel.sender()))
