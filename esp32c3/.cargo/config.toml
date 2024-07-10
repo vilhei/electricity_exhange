@@ -1,7 +1,7 @@
 [target.riscv32imc-unknown-none-elf]
 # runner = "probe-rs run --chip esp32c3"
-# runner = "espflash flash"
-runner = "espflash flash --monitor"
+runner = "espflash flash"
+# runner = "espflash flash --monitor"
 # runner = "espflash --format direct-boot --monitor"
 
 [build]
@@ -14,6 +14,8 @@ rustflags = [
     "force-frame-pointers",
     "-C",
     "link-arg=-Trom_functions.x",
+    # "-D",
+    # "unused-crate-dependencies",
 ]
 
 target = "riscv32imc-unknown-none-elf"

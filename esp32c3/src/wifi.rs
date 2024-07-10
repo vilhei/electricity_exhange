@@ -5,8 +5,7 @@ use embassy_net::{Stack, StackResources};
 use embassy_time::{Duration, Timer};
 use esp_hal::{
     clock::Clocks,
-    peripheral::Peripheral,
-    peripherals::{RADIO_CLK, RNG, SYSTIMER, WIFI},
+    peripherals::{RADIO_CLK, SYSTIMER, WIFI},
     rng::Rng,
 };
 use esp_wifi::{
@@ -27,13 +26,12 @@ const WIFI_PASSWORD: &str = env!("WIFI_PASSWORD");
 
 pub async fn connect(
     spawner: &Spawner,
-    rng: impl Peripheral<P = RNG>,
+    mut rng: Rng,
     systimer: SYSTIMER,
     radio_clk: RADIO_CLK,
     clocks: &Clocks<'_>,
     wifi: WIFI,
 ) -> Result<&'static Stack<WifiDevice<'static, WifiStaDevice>>, Error> {
-    let mut rng = Rng::new(rng);
     let seed1 = rng.random();
     let seed2 = rng.random();
 
@@ -96,7 +94,7 @@ async fn connection(mut controller: WifiController<'static>) {
 
         match controller.connect().await {
             Ok(_) => {}
-            Err(e) => {
+            Err(_) => {
                 Timer::after(Duration::from_millis(3000)).await;
             }
         }

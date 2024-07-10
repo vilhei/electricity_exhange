@@ -404,6 +404,7 @@ name = "electricity_exhange"
 version = "0.1.0"
 dependencies = [
  "corncobs",
+ "display-interface",
  "display-interface-spi",
  "embassy-executor",
  "embassy-net",
@@ -413,21 +414,21 @@ dependencies = [
  "embassy-usb",
  "embedded-graphics",
  "embedded-graphics-framebuf",
+ "embedded-hal 1.0.0",
  "embedded-hal-async",
  "embedded-hal-bus",
  "embedded-io-async",
+ "embedded-nal-async",
  "embedded-tls",
  "esp-backtrace",
  "esp-hal",
  "esp-hal-embassy",
  "esp-println",
  "esp-wifi",
- "esp32c3 0.22.0",
  "fugit",
  "heapless 0.8.0",
  "mipidsi",
  "reqwless",
- "rtic",
  "shared",
  "static_cell",
 ]
@@ -887,7 +888,7 @@ dependencies = [
  "esp-hal-procmacros",
  "esp-metadata",
  "esp-riscv-rt",
- "esp32c3 0.23.0",
+ "esp32c3",
  "fugit",
  "log",
  "nb 1.1.0",
@@ -1008,16 +1009,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "551b510b3944844675fcefa1301b3610fe56faa419bcc05dd0dd0056745c6654"
 dependencies = [
  "anyhow",
-]
-
-[[package]]
-name = "esp32c3"
-version = "0.22.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4c22d8c27e7d675ef79db212b9e41df80aef6db1a5c819e4e726735f64ee0700"
-dependencies = [
- "critical-section",
- "vcell",
 ]
 
 [[package]]
@@ -1722,38 +1713,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rtic"
-version = "2.1.1"
-source = "git+https://github.com/rtic-rs/rtic#624f643a976fc0676750de9c22d789115cba21c1"
-dependencies = [
- "bare-metal",
- "critical-section",
- "esp32c3 0.22.0",
- "portable-atomic",
- "riscv",
- "rtic-core",
- "rtic-macros",
-]
-
-[[package]]
-name = "rtic-core"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d9369355b04d06a3780ec0f51ea2d225624db777acbc60abd8ca4832da5c1a42"
-
-[[package]]
-name = "rtic-macros"
-version = "2.1.0"
-source = "git+https://github.com/rtic-rs/rtic#624f643a976fc0676750de9c22d789115cba21c1"
-dependencies = [
- "indexmap",
- "proc-macro-error",
- "proc-macro2",
- "quote",
- "syn 2.0.68",
-]
-
-[[package]]
 name = "rustc_version"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1839,10 +1798,10 @@ version = "0.1.0"
 dependencies = [
  "corncobs",
  "crc",
+ "embedded-graphics",
  "heapless 0.8.0",
  "postcard",
  "serde",
- "ssmarshal",
 ]
 
 [[package]]

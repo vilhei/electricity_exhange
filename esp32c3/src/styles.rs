@@ -1,12 +1,6 @@
 use embedded_graphics::{
-    mono_font::{
-        ascii::{FONT_6X10, FONT_8X13},
-        iso_8859_3::FONT_10X20,
-        MonoTextStyle, MonoTextStyleBuilder,
-    },
-    pixelcolor::{BinaryColor, Rgb565, RgbColor},
-    primitives::{PrimitiveStyle, PrimitiveStyleBuilder},
-    text::TextStyleBuilder,
+    mono_font::{iso_8859_3::FONT_10X20, MonoTextStyle, MonoTextStyleBuilder},
+    pixelcolor::{Rgb565, RgbColor},
 };
 
 pub const TEXT_STYLE: MonoTextStyle<'static, Rgb565> = MonoTextStyleBuilder::new()
