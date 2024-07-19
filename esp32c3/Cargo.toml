@@ -6,14 +6,7 @@ version = "0.1.0"
 [dependencies]
 shared = { path = "../shared" }
 
-esp-hal = { version = "0.18.0", features = [
-    "esp32c3",
-    "async",
-
-    # "time-driver-any",
-    # "interrupt-preemption",
-    # "direct-vectoring",
-] }
+esp-hal = { version = "0.18.0", features = ["esp32c3", "async"] }
 display-interface-spi = "0.5.0"
 embedded-graphics = "0.8.1"
 embedded-hal-bus = "0.2.0"
@@ -37,7 +30,7 @@ embedded-hal-async = "1.0.0"
 esp-hal-embassy = { version = "0.1.0", features = ["esp32c3", "time-timg0"] }
 embassy-time = { version = "0.3.1", features = ["generic-queue-8"] }
 heapless = "0.8.0"
-embedded-graphics-framebuf = "0.5.0"
+# embedded-graphics-framebuf = "0.5.0"
 embassy-usb = "0.2.0"
 embedded-io-async = "0.6.1"
 embassy-sync = "0.6.0"
@@ -57,18 +50,21 @@ reqwless = { version = "0.12.0", default-features = false, features = [
     "embedded-tls",
 ] }
 
-embassy-net = { version = "0.4.0", features = [
-    "tcp",
-    "dns",
-    "dhcpv4",
-    # "medium-ethernet",
-
-] }
+embassy-net = { version = "0.4.0", features = ["tcp", "dns", "dhcpv4"] }
 embedded-tls = { version = "0.17.0", default-features = false }
 embedded-nal-async = "0.7.1"
 corncobs = "0.1.3"
 display-interface = "0.5.0"
 embedded-hal = "1.0.0"
+u8g2-fonts = { version = "0.4.0" }
+critical-section = "1.1.2"
+sequential-storage = "2.0.2"
+postcard = { version = "1.0.8", features = ["experimental-derive"] }
+serde = { version = "1.0.204", default-features = false }
+esp-storage = { version = "0.3.0", features = ["esp32c3", "nor-flash"] }
+embedded-storage = "0.3.1"
+embassy-embedded-hal = "0.1.0"
+embedded-storage-async = "0.4.1"
 
 # cargo build/run
 [profile.dev]

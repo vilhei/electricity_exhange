@@ -1,35 +1,34 @@
 #![no_std]
+// #![cfg_attr(not(test), no_std)]
 #![no_main]
 #![feature(type_alias_impl_trait)]
 
 use core::str::FromStr;
 
 use display_interface_spi::SPIInterface;
-use electricity_exhange::wifi;
+use electricity_exhange::{storage::NonVolatileStorage, wifi};
 use embassy_executor::Spawner;
 use embassy_sync::{
     blocking_mutex::raw::{CriticalSectionRawMutex, NoopRawMutex},
     channel::{Channel, Receiver, Sender},
+    mutex::Mutex,
 };
 use embedded_hal_bus::spi::ExclusiveDevice;
 use esp_hal::{
     clock::ClockControl,
-    gpio::{Io, Level, Output, NO_PIN},
+    gpio::{Gpio9, Input, Io, Level, Output, NO_PIN},
     interrupt::Priority,
     peripherals::Peripherals,
     prelude::*,
     rng::Rng,
-    spi::{
-        master::{prelude::*, Spi},
-        SpiMode,
-    },
+    spi::{master::Spi, SpiMode},
     system::SystemControl,
     timer::timg::TimerGroup,
 };
 use esp_hal_embassy::InterruptExecutor;
 // use esp_println::println;
 use heapless::String;
-use shared::{DisplayMessage, Message, Response};
+use shared::{DisplayBrightness, DisplayUpdate, Message, Response};
 use static_cell::{ConstStaticCell, StaticCell};
 
 use esp_backtrace as _; // Panic behaviour
@@ -42,64 +41,61 @@ static BROKER_CHANNEL: ConstStaticCell<Channel<NoopRawMutex, Message, 10>> =
 static WRITER_CHANNEL: ConstStaticCell<Channel<NoopRawMutex, Response, 10>> =
     ConstStaticCell::new(Channel::new());
 
-static DISPLAY_CHANNEL: ConstStaticCell<Channel<CriticalSectionRawMutex, DisplayMessage, 10>> =
+/// Send updates to display
+static DISPLAY_CHANNEL: ConstStaticCell<Channel<CriticalSectionRawMutex, DisplayUpdate, 10>> =
     ConstStaticCell::new(Channel::new());
 
-// static DMA_DESCRIPTORS: ConstStaticCell<([DmaDescriptor; 5], [DmaDescriptor; 5])> =
-// ConstStaticCell::new(dma_descriptors!(16384));
+/// Can be used to access non-volatile storage
+static NVS_STORAGE: StaticCell<Mutex<NoopRawMutex, NonVolatileStorage>> = StaticCell::new();
 
+/// Executor used by display task
 static HIGH_PRIO_EXECUTOR: StaticCell<InterruptExecutor<2>> = StaticCell::new();
-
-// #[embassy_executor::task]
-// async fn read_serial(
-//     mut rx: UartRx<'static, UART0, Async>,
-//     sender: Sender<'static, NoopRawMutex, Message, 10>,
-// ) {
-//     let mut message = Vec::<u8, MESSAGE_SIZE>::new();
-//     let mut buf = [0; 1];
-
-//     loop {
-//         let _ = rx.read_exact(&mut buf).await;
-//         if message.is_full() {
-//             panic!("Message buffer is full")
-//         }
-//         message.push(buf[0]).unwrap();
-//         if buf[0] == corncobs::ZERO {
-//             let deserialized = deserialize_crc_cobs(&message);
-//             message.clear();
-//             sender.send(deserialized).await;
-//         }
-//     }
-// }
 
 #[embassy_executor::task]
 async fn broker(
-    receiver: Receiver<'static, NoopRawMutex, Message, 10>,
-    writer_sender: Sender<'static, NoopRawMutex, Response, 10>,
+    broker_receiver: Receiver<'static, NoopRawMutex, Message, 10>,
+    serial_writer_sender: Sender<'static, NoopRawMutex, Response, 10>,
 ) {
     loop {
-        let message = receiver.receive().await;
+        let message = broker_receiver.receive().await;
 
         match message {
-            Message::Wifi(_) => writer_sender.send(Response::Ok).await,
+            Message::Wifi(_) => serial_writer_sender.send(Response::Ok).await,
             Message::FingridApiKey(_) => todo!(),
             Message::EntsoeApiKey(_) => todo!(),
+            Message::Display(_) => todo!(),
         }
     }
 }
 
-// #[embassy_executor::task]
-// async fn write_serial(
-//     receiver: Receiver<'static, NoopRawMutex, Response, 10>,
-//     mut tx: UartTx<'static, UART0, Async>,
-// ) {
-//     loop {
-//         let response = receiver.receive().await;
-//         let mut buf = [0; RESPONSE_SIZE];
-//         let serialized = serialize_crc_cobs::<Response, RESPONSE_SIZE>(response, &mut buf);
-//         tx.write_async(serialized).await.unwrap();
-//     }
-// }
+#[embassy_executor::task]
+async fn button_task(
+    mut button: Input<'static, Gpio9>,
+    display_sender: Sender<'static, CriticalSectionRawMutex, DisplayUpdate, 10>,
+) {
+    let mut display_on = 0;
+    display_sender
+        .send(DisplayUpdate::StatusUpdate(
+            String::from_str("Started brightness task").unwrap(),
+        ))
+        .await;
+
+    loop {
+        button.wait_for_falling_edge().await;
+
+        display_on = (display_on + 1) % 3;
+        let brightness = match display_on {
+            0 => DisplayBrightness::Low,
+            1 => DisplayBrightness::Normal,
+            2 => DisplayBrightness::High,
+            _ => unreachable!(),
+        };
+
+        display_sender
+            .send(DisplayUpdate::SetBrightness(brightness))
+            .await;
+    }
+}
 
 #[main]
 async fn main(spawner: Spawner) {
@@ -168,10 +164,33 @@ async fn main(spawner: Spawner) {
     let display_sender = display_channel.sender();
 
     display_sender
-        .send(DisplayMessage::StatusUpdate(
-            String::from_str("Wifi init").unwrap(),
+        .send(DisplayUpdate::StatusUpdate(
+            String::from_str("started Wifi init").unwrap(),
         ))
         .await;
+
+    let nvs = NonVolatileStorage::take();
+    let nvs_storage = NVS_STORAGE.init(Mutex::new(nvs));
+    // {
+    //     println!("Saving to nvs storage");
+    //     let mut guard = nvs_storage.lock().await;
+    //     guard
+    //         .store(
+    //             electricity_exhange::storage::NonVolatileKey::WifiSsid,
+    //             NonVolatileItem::new("VHouHou2.4"),
+    //         )
+    //         .await
+    //         .unwrap();
+
+    //     guard
+    //         .store(
+    //             electricity_exhange::storage::NonVolatileKey::WifiPassword,
+    //             NonVolatileItem::new("M98p26a10s"),
+    //         )
+    //         .await
+    //         .unwrap();
+    //     println!("Saved to nvs storage");
+    // }
 
     let stack = wifi::connect(
         &spawner,
@@ -180,12 +199,14 @@ async fn main(spawner: Spawner) {
         peripherals.RADIO_CLK,
         &clocks,
         peripherals.WIFI,
+        display_sender,
+        nvs_storage,
     )
     .await
     .unwrap();
 
     display_sender
-        .send(DisplayMessage::StatusUpdate(
+        .send(DisplayUpdate::StatusUpdate(
             String::from_str("Wifi init done").unwrap(),
         ))
         .await;
@@ -202,7 +223,7 @@ async fn main(spawner: Spawner) {
     // println!("{:#?}", res);
 
     display_sender
-        .send(DisplayMessage::StatusUpdate(
+        .send(DisplayUpdate::StatusUpdate(
             String::from_str("Starting broker task").unwrap(),
         ))
         .await;
@@ -212,10 +233,11 @@ async fn main(spawner: Spawner) {
     // println!("Starting serial setup");
 
     display_sender
-        .send(DisplayMessage::StatusUpdate(
+        .send(DisplayUpdate::StatusUpdate(
             String::from_str("Serial init").unwrap(),
         ))
         .await;
+
     electricity_exhange::serial::setup(
         &spawner,
         peripherals.UART0,
@@ -226,38 +248,23 @@ async fn main(spawner: Spawner) {
     .unwrap();
 
     display_sender
-        .send(DisplayMessage::StatusUpdate(
+        .send(DisplayUpdate::StatusUpdate(
             String::from_str("Serial init done").unwrap(),
         ))
         .await;
-    // println!("Done serial setup");
 
-    // let mut buf = [0; 32];
-    // let mut s_buf = String::<32>::new();
+    display_sender
+        .send(DisplayUpdate::StatusUpdate(
+            String::from_str("Device init done!").unwrap(),
+        ))
+        .await;
+
+    // let button = Input::new(io.pins.gpio9, esp_hal::gpio::Pull::Up);
+
+    // spawner.must_spawn(button_task(button, display_sender));
+
     // loop {
-    //     display.clear(Rgb565::WHITE).unwrap();
 
-    //     Text::with_alignment(
-    //         "reading",
-    //         Point { x: 100, y: 100 },
-    //         TEXT_STYLE,
-    //         Alignment::Center,
-    //     )
-    //     .draw(&mut display)
-    //     .unwrap();
-
-    //     s_buf.clear();
-    //     // write!(s_buf, "{}", buf[0]).unwrap();
-    //     display.clear(Rgb565::WHITE).unwrap();
-
-    //     Text::with_alignment(
-    //         &s_buf,
-    //         Point { x: 100, y: 100 },
-    //         TEXT_STYLE,
-    //         Alignment::Center,
-    //     )
-    //     .draw(&mut display)
-    //     .unwrap();
     //     Timer::after(Duration::from_millis(500)).await;
     // }
 }

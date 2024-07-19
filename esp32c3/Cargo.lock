@@ -226,6 +226,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2459377285ad874054d797f3ccebf984978aa39129f6eafde5cdc8315b612f8"
 
 [[package]]
+name = "const_format"
+version = "0.2.32"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e3a214c7af3d04997541b18d432afaff4c455e79e2029079647e72fc2bd27673"
+dependencies = [
+ "const_format_proc_macros",
+]
+
+[[package]]
+name = "const_format_proc_macros"
+version = "0.2.32"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c7f6ff08fd20f4f299298a28e2dfa8a8ba1036e6cd2460ac1de7b425d76f2500"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "unicode-xid",
+]
+
+[[package]]
 name = "core-isa-parser"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -404,8 +424,10 @@ name = "electricity_exhange"
 version = "0.1.0"
 dependencies = [
  "corncobs",
+ "critical-section",
  "display-interface",
  "display-interface-spi",
+ "embassy-embedded-hal",
  "embassy-executor",
  "embassy-net",
  "embassy-sync 0.6.0",
@@ -413,24 +435,30 @@ dependencies = [
  "embassy-time-driver",
  "embassy-usb",
  "embedded-graphics",
- "embedded-graphics-framebuf",
  "embedded-hal 1.0.0",
  "embedded-hal-async",
  "embedded-hal-bus",
  "embedded-io-async",
  "embedded-nal-async",
+ "embedded-storage",
+ "embedded-storage-async",
  "embedded-tls",
  "esp-backtrace",
  "esp-hal",
  "esp-hal-embassy",
  "esp-println",
+ "esp-storage",
  "esp-wifi",
  "fugit",
  "heapless 0.8.0",
  "mipidsi",
+ "postcard",
  "reqwless",
+ "sequential-storage",
+ "serde",
  "shared",
  "static_cell",
+ "u8g2-fonts",
 ]
 
 [[package]]
@@ -450,6 +478,23 @@ dependencies = [
  "sec1",
  "subtle",
  "zeroize",
+]
+
+[[package]]
+name = "embassy-embedded-hal"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eca4a9380d03e61063067b8239f67d2fa9f108ede7c46b4273804f6b79e59a1d"
+dependencies = [
+ "embassy-futures",
+ "embassy-sync 0.5.0",
+ "embassy-time",
+ "embedded-hal 0.2.7",
+ "embedded-hal 1.0.0",
+ "embedded-hal-async",
+ "embedded-storage",
+ "embedded-storage-async",
+ "nb 1.1.0",
 ]
 
 [[package]]
@@ -666,16 +711,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "embedded-graphics-framebuf"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "22354420f68727fa24d1e2741dae1e9a041065e80fb63b35a8d19c647a85be76"
-dependencies = [
- "embedded-dma",
- "embedded-graphics",
-]
-
-[[package]]
 name = "embedded-hal"
 version = "0.2.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -755,6 +790,21 @@ dependencies = [
  "embedded-io-async",
  "embedded-nal",
  "no-std-net 0.6.0",
+]
+
+[[package]]
+name = "embedded-storage"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a21dea9854beb860f3062d10228ce9b976da520a73474aed3171ec276bc0c032"
+
+[[package]]
+name = "embedded-storage-async"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1763775e2323b7d5f0aa6090657f5e21cfa02ede71f5dc40eead06d64dcd15cc"
+dependencies = [
+ "embedded-storage",
 ]
 
 [[package]]
@@ -965,6 +1015,16 @@ dependencies = [
  "document-features",
  "riscv",
  "riscv-rt-macros",
+]
+
+[[package]]
+name = "esp-storage"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2fa3fc3afc3a56b91522a35b9f773d40d2332d0a66ff1e8a823152cda4ff1923"
+dependencies = [
+ "critical-section",
+ "embedded-storage",
 ]
 
 [[package]]
@@ -1547,10 +1607,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a55c51ee6c0db07e68448e336cf8ea4131a620edefebf9893e759b2d793420f8"
 dependencies = [
  "cobs",
+ "const_format",
  "crc",
  "heapless 0.7.17",
  "paste",
+ "postcard-derive",
  "serde",
+]
+
+[[package]]
+name = "postcard-derive"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fc4b01218787dd4420daf63875163a787a78294ad48a24e9f6fa8c6507759a79"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
 ]
 
 [[package]]
@@ -1753,19 +1826,28 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "61697e0a1c7e512e84a621326239844a24d8207b4669b41bc18b32ea5cbf988b"
 
 [[package]]
-name = "serde"
-version = "1.0.203"
+name = "sequential-storage"
+version = "2.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7253ab4de971e72fb7be983802300c30b5a7f0c2e56fab8abfc6a214307c0094"
+checksum = "8d25123e754473ed08bcc4e0ef61f0a733662872885e533ffdf03771119712fc"
+dependencies = [
+ "embedded-storage-async",
+]
+
+[[package]]
+name = "serde"
+version = "1.0.204"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bc76f558e0cbb2a839d37354c575f1dc3fdc6546b5be373ba43d95f231bf7c12"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.203"
+version = "1.0.204"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "500cbc0ebeb6f46627f50f3f5811ccf6bf00643be300b4c3eabc0ef55dc5b5ba"
+checksum = "e0cd7e117be63d3c3678776753929474f3b04a43a080c744d6b0ae2a8c28e222"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1800,8 +1882,11 @@ dependencies = [
  "crc",
  "embedded-graphics",
  "heapless 0.8.0",
+ "mipidsi",
  "postcard",
  "serde",
+ "strum 0.26.3",
+ "strum_macros 0.26.4",
 ]
 
 [[package]]
@@ -2001,10 +2086,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42ff0bf0c66b8238c6f3b578df37d0b7848e55df8577b3f74f92a69acceeb825"
 
 [[package]]
+name = "u8g2-fonts"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a68775e2131c88974e3cc1da37060559090319ea140746cc1e7e7797646415c0"
+dependencies = [
+ "embedded-graphics-core",
+]
+
+[[package]]
 name = "unicode-ident"
 version = "1.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3354b9ac3fae1ff6755cb6db53683adb661634f67557942dea4facebec0fee4b"
+
+[[package]]
+name = "unicode-xid"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f962df74c8c05a667b5ee8bcf162993134c104e96440b663c8daa176dc772d8c"
 
 [[package]]
 name = "universal-hash"

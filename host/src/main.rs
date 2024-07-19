@@ -1,8 +1,6 @@
 use std::{str::FromStr, thread::sleep, time::Duration};
 
-use shared::{
-    deserialize_crc_cobs, serialize_crc_cobs, Message, Response, WifiInfo, IN_SIZE, OUT_SIZE,
-};
+use shared::{deserialize_crc_cobs, serialize_crc_cobs, Message, Response, WifiInfo, MESSAGE_SIZE};
 
 fn main() {
     let ports = serialport::available_ports().expect("No ports found");
@@ -18,7 +16,7 @@ fn main() {
     port.set_stop_bits(serialport::StopBits::One).unwrap();
     port.set_parity(serialport::Parity::None).unwrap();
 
-    let mut buf: Vec<u8> = vec![0; IN_SIZE];
+    let mut buf: Vec<u8> = vec![0; MESSAGE_SIZE];
     let mut i = 0;
 
     // let ssid = String::from_str("MyWifi");
@@ -27,8 +25,8 @@ fn main() {
         heapless::String::<64>::from_str("Mywifi").unwrap(),
         heapless::String::<64>::from_str("1234").unwrap(),
     ));
-    let mut out_buf = [0u8; IN_SIZE];
-    let serialized_obj = serialize_crc_cobs::<Message, IN_SIZE>(test_object, &mut out_buf);
+    let mut out_buf = [0u8; MESSAGE_SIZE];
+    let serialized_obj = serialize_crc_cobs::<Message, MESSAGE_SIZE>(test_object, &mut out_buf);
     // let mut s_buf = String::new();
     loop {
         let _ = port.write(serialized_obj);

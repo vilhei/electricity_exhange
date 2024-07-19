@@ -11,8 +11,10 @@ use static_cell::{ConstStaticCell, StaticCell};
 
 static TCP_CLIENT_STATE: ConstStaticCell<TcpClientState<1, 4096, 4096>> =
     ConstStaticCell::new(TcpClientState::<1, 4096, 4096>::new());
+
 static TCP_CLIENT: StaticCell<TcpClient<WifiDevice<'static, WifiStaDevice>, 1, 4096, 4096>> =
     StaticCell::new();
+
 static DNS_SOCKET: StaticCell<DnsSocket<WifiDevice<WifiStaDevice>>> = StaticCell::new();
 
 pub struct Client<S: BuildState, const N: usize = 4096> {
