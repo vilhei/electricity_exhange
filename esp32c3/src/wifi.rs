@@ -12,7 +12,6 @@ use esp_hal::{
     peripherals::{RADIO_CLK, SYSTIMER, WIFI},
     rng::Rng,
 };
-use esp_println::println;
 use esp_wifi::{
     wifi::{self, WifiController, WifiDevice, WifiEvent, WifiStaDevice},
     EspWifiInitFor,
@@ -21,42 +20,48 @@ use heapless::String;
 use shared::DisplayUpdate;
 use static_cell::StaticCell;
 
+use crate::generate_rand_u64;
 use crate::storage::{NonVolatileKey, NonVolatileStorage};
 
 static STACK_RESOURCES: StaticCell<StackResources<3>> = StaticCell::new();
 static STACK: StaticCell<Stack<WifiDevice<'static, WifiStaDevice>>> = StaticCell::new();
 
-/// SSID for WiFi network
-// const WIFI_SSID: &str = env!("WIFI_SSID");
+pub struct WifiPeripherals<'a> {
+    pub systimer: SYSTIMER,
+    pub radio_clk: RADIO_CLK,
+    pub clocks: &'a Clocks<'a>,
+    pub wifi: WIFI,
+}
 
-/// Password for WiFi network
-// const WIFI_PASSWORD: &str = env!("WIFI_PASSWORD");
-
-#[allow(clippy::too_many_arguments)]
+// #[allow(clippy::too_many_arguments)]
 pub async fn connect(
     spawner: &Spawner,
     mut rng: Rng,
-    systimer: SYSTIMER,
-    radio_clk: RADIO_CLK,
-    clocks: &Clocks<'_>,
-    wifi: WIFI,
+    wifi_peripherals: WifiPeripherals<'_>,
     display_sender: Sender<'static, CriticalSectionRawMutex, DisplayUpdate, 10>,
     nvs_storage: &'static Mutex<NoopRawMutex, NonVolatileStorage>,
 ) -> Result<&'static Stack<WifiDevice<'static, WifiStaDevice>>, Error> {
-    let seed1 = rng.random();
-    let seed2 = rng.random();
+    display_sender
+        .send(DisplayUpdate::StatusUpdate(
+            String::from_str("started Wifi init").unwrap(),
+        ))
+        .await;
 
-    let mut bytes = [0u8; 8];
-    bytes[0..4].copy_from_slice(&seed1.to_le_bytes());
-    bytes[4..].copy_from_slice(&seed2.to_le_bytes());
-
-    let seed = u64::from_le_bytes(bytes);
+    let seed = generate_rand_u64(&mut rng);
 
     // WIFI stuff
-    let timer = esp_hal::timer::systimer::SystemTimer::new(systimer).alarm0;
-    let init = esp_wifi::initialize(EspWifiInitFor::Wifi, timer, rng, radio_clk, clocks).unwrap();
+    let timer = esp_hal::timer::systimer::SystemTimer::new(wifi_peripherals.systimer).alarm0;
+    let init = esp_wifi::initialize(
+        EspWifiInitFor::Wifi,
+        timer,
+        rng,
+        wifi_peripherals.radio_clk,
+        wifi_peripherals.clocks,
+    )
+    .unwrap();
 
-    let (wifi_controller, controller) = wifi::new_with_mode(&init, wifi, WifiStaDevice).unwrap();
+    let (wifi_controller, controller) =
+        wifi::new_with_mode(&init, wifi_peripherals.wifi, WifiStaDevice).unwrap();
 
     let config = embassy_net::Config::dhcpv4(Default::default());
 
@@ -81,6 +86,7 @@ pub async fn connect(
             .unwrap()
             .0;
 
+        // Todo remove showing wifi credentials in final build
         let mut msg = String::<64>::new();
         write!(msg, "{wifi_ssid}\n{wifi_password}").unwrap();
         display_sender.send(DisplayUpdate::StatusUpdate(msg)).await;
@@ -110,8 +116,6 @@ async fn connection(
 ) {
     let wifi_ssid = String::from_str(wifi_ssid.as_ref()).unwrap();
 
-    println!("{wifi_ssid}\n{wifi_password}");
-
     // Todo send error message to display and/or serial if wifi is not connected within certain timeframe?
     loop {
         if wifi::get_wifi_state() == wifi::WifiState::StaConnected {
@@ -122,12 +126,6 @@ async fn connection(
         }
 
         if !matches!(controller.is_started(), Ok(true)) {
-            // let client_config = wifi::Configuration::Client(wifi::ClientConfiguration {
-            //     ssid: String::from_str(WIFI_SSID).unwrap(),
-            //     password: String::from_str(WIFI_PASSWORD).unwrap(),
-            //     ..Default::default()
-            // });
-
             let client_config = wifi::Configuration::Client(wifi::ClientConfiguration {
                 ssid: wifi_ssid.clone(),
                 password: wifi_password.clone(),

@@ -90,7 +90,7 @@ impl NonVolatileStorage {
     pub async fn store(
         &mut self,
         key: NonVolatileKey,
-        item: NonVolatileItem,
+        item: String<64>,
     ) -> Result<(), StorageError> {
         let mut data_buffer = [0u8; ITEM_SIZE];
         store_item(
@@ -99,7 +99,7 @@ impl NonVolatileStorage {
             &mut NoCache::new(),
             &mut data_buffer,
             key,
-            &item,
+            &NonVolatileItem(item),
         )
         .await
         .map_err(|e| e.into())

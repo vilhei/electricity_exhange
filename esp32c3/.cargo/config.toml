@@ -22,7 +22,3 @@ target = "riscv32imc-unknown-none-elf"
 
 [unstable]
 build-std = ["core"]
-
-[env]
-WIFI_SSID = "default"
-WIFI_PASSWORD = "default"

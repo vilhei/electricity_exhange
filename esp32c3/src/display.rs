@@ -4,10 +4,8 @@ use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, channel::Receiv
 use embassy_time::Delay;
 use embedded_graphics::{
     draw_target::DrawTarget,
-    geometry::{Dimensions, Point},
+    geometry::Dimensions,
     pixelcolor::{Rgb565, RgbColor},
-    text::{Alignment, Text},
-    Drawable,
 };
 use embedded_hal_bus::spi::{ExclusiveDevice, NoDelay};
 use esp_hal::{
@@ -22,10 +20,7 @@ use mipidsi::{
     Display,
 };
 use shared::DisplayUpdate;
-use u8g2_fonts::{
-    fonts,
-    types::{FontColor, HorizontalAlignment, VerticalPosition},
-};
+use u8g2_fonts::types::{FontColor, HorizontalAlignment, VerticalPosition};
 
 use crate::styles::FONT1_NORMAL;
 

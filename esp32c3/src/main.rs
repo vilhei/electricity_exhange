@@ -6,11 +6,15 @@
 use core::str::FromStr;
 
 use display_interface_spi::SPIInterface;
-use electricity_exhange::{storage::NonVolatileStorage, wifi};
+use electricity_exhange::{
+    storage::NonVolatileStorage,
+    tasks::broker,
+    wifi::{self, WifiPeripherals},
+};
 use embassy_executor::Spawner;
 use embassy_sync::{
     blocking_mutex::raw::{CriticalSectionRawMutex, NoopRawMutex},
-    channel::{Channel, Receiver, Sender},
+    channel::{Channel, Sender},
     mutex::Mutex,
 };
 use embedded_hal_bus::spi::ExclusiveDevice;
@@ -51,52 +55,6 @@ static NVS_STORAGE: StaticCell<Mutex<NoopRawMutex, NonVolatileStorage>> = Static
 /// Executor used by display task
 static HIGH_PRIO_EXECUTOR: StaticCell<InterruptExecutor<2>> = StaticCell::new();
 
-#[embassy_executor::task]
-async fn broker(
-    broker_receiver: Receiver<'static, NoopRawMutex, Message, 10>,
-    serial_writer_sender: Sender<'static, NoopRawMutex, Response, 10>,
-) {
-    loop {
-        let message = broker_receiver.receive().await;
-
-        match message {
-            Message::Wifi(_) => serial_writer_sender.send(Response::Ok).await,
-            Message::FingridApiKey(_) => todo!(),
-            Message::EntsoeApiKey(_) => todo!(),
-            Message::Display(_) => todo!(),
-        }
-    }
-}
-
-#[embassy_executor::task]
-async fn button_task(
-    mut button: Input<'static, Gpio9>,
-    display_sender: Sender<'static, CriticalSectionRawMutex, DisplayUpdate, 10>,
-) {
-    let mut display_on = 0;
-    display_sender
-        .send(DisplayUpdate::StatusUpdate(
-            String::from_str("Started brightness task").unwrap(),
-        ))
-        .await;
-
-    loop {
-        button.wait_for_falling_edge().await;
-
-        display_on = (display_on + 1) % 3;
-        let brightness = match display_on {
-            0 => DisplayBrightness::Low,
-            1 => DisplayBrightness::Normal,
-            2 => DisplayBrightness::High,
-            _ => unreachable!(),
-        };
-
-        display_sender
-            .send(DisplayUpdate::SetBrightness(brightness))
-            .await;
-    }
-}
-
 #[main]
 async fn main(spawner: Spawner) {
     // println!("Init!");
@@ -107,17 +65,11 @@ async fn main(spawner: Spawner) {
     let timg0 = TimerGroup::new_async(peripherals.TIMG0, &clocks);
     esp_hal_embassy::init(&clocks, timg0);
 
-    // let mut delay = esp_hal::delay::Delay::new(&clocks);
-
     let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
 
     let sclk = io.pins.gpio12;
     let mosi = io.pins.gpio13;
     let cs = io.pins.gpio10;
-
-    // let dma = Dma::new(peripherals.DMA);
-
-    // let descriptors = DMA_DESCRIPTORS.take();
 
     let spi = Spi::new(peripherals.SPI2, 80.MHz(), SpiMode::Mode0, &clocks).with_pins(
         Some(sclk),
@@ -144,66 +96,22 @@ async fn main(spawner: Spawner) {
 
     electricity_exhange::display::setup(&high_prio_spawner, di, rst, display_channel.receiver());
 
-    // let mut display = mipidsi::Builder::new(ST7789, di)
-    //     .reset_pin(rst)
-    //     .display_size(240, 320)
-    //     .orientation(Orientation::new().rotate(Rotation::Deg90))
-    //     .invert_colors(ColorInversion::Inverted)
-    //     .init(&mut Delay)
-    //     .unwrap();
-
-    // display.clear(Rgb565::WHITE).unwrap();
-    // let a = peripherals.UART0;
-    // let uart = Uart::new_async(peripherals.UART0, &clocks);
-    // let (tx, rx) = uart.split();
-
     let rng = Rng::new(peripherals.RNG);
-    // dbg!("");
-    // println!("Starting wifi connect");
 
     let display_sender = display_channel.sender();
 
-    display_sender
-        .send(DisplayUpdate::StatusUpdate(
-            String::from_str("started Wifi init").unwrap(),
-        ))
-        .await;
+    let nvs_storage = NVS_STORAGE.init(Mutex::new(NonVolatileStorage::take()));
 
-    let nvs = NonVolatileStorage::take();
-    let nvs_storage = NVS_STORAGE.init(Mutex::new(nvs));
-    // {
-    //     println!("Saving to nvs storage");
-    //     let mut guard = nvs_storage.lock().await;
-    //     guard
-    //         .store(
-    //             electricity_exhange::storage::NonVolatileKey::WifiSsid,
-    //             NonVolatileItem::new("VHouHou2.4"),
-    //         )
-    //         .await
-    //         .unwrap();
+    let wifi_peripherals = WifiPeripherals {
+        systimer: peripherals.SYSTIMER,
+        radio_clk: peripherals.RADIO_CLK,
+        clocks: &clocks,
+        wifi: peripherals.WIFI,
+    };
 
-    //     guard
-    //         .store(
-    //             electricity_exhange::storage::NonVolatileKey::WifiPassword,
-    //             NonVolatileItem::new("M98p26a10s"),
-    //         )
-    //         .await
-    //         .unwrap();
-    //     println!("Saved to nvs storage");
-    // }
-
-    let stack = wifi::connect(
-        &spawner,
-        rng,
-        peripherals.SYSTIMER,
-        peripherals.RADIO_CLK,
-        &clocks,
-        peripherals.WIFI,
-        display_sender,
-        nvs_storage,
-    )
-    .await
-    .unwrap();
+    let stack = wifi::connect(&spawner, rng, wifi_peripherals, display_sender, nvs_storage)
+        .await
+        .unwrap();
 
     display_sender
         .send(DisplayUpdate::StatusUpdate(
@@ -211,32 +119,17 @@ async fn main(spawner: Spawner) {
         ))
         .await;
 
-    // println!("Building client");
     let mut _client = electricity_exhange::client::Client::new(stack);
-    // println!("Requesting");
     // let res = client.request().await;
-    // println!("Done Requesting");
 
     let broker_channel = BROKER_CHANNEL.take();
     let writer_channel = WRITER_CHANNEL.take();
 
-    // println!("{:#?}", res);
-
-    display_sender
-        .send(DisplayUpdate::StatusUpdate(
-            String::from_str("Starting broker task").unwrap(),
-        ))
-        .await;
-    spawner
-        .spawn(broker(broker_channel.receiver(), writer_channel.sender()))
-        .expect("Failed to spawn read serial");
-    // println!("Starting serial setup");
-
-    display_sender
-        .send(DisplayUpdate::StatusUpdate(
-            String::from_str("Serial init").unwrap(),
-        ))
-        .await;
+    spawner.must_spawn(broker(
+        broker_channel.receiver(),
+        writer_channel.sender(),
+        display_sender,
+    ));
 
     electricity_exhange::serial::setup(
         &spawner,
@@ -244,24 +137,16 @@ async fn main(spawner: Spawner) {
         &clocks,
         broker_channel.sender(),
         writer_channel.receiver(),
+        display_sender,
     )
+    .await
     .unwrap();
-
-    display_sender
-        .send(DisplayUpdate::StatusUpdate(
-            String::from_str("Serial init done").unwrap(),
-        ))
-        .await;
 
     display_sender
         .send(DisplayUpdate::StatusUpdate(
             String::from_str("Device init done!").unwrap(),
         ))
         .await;
-
-    // let button = Input::new(io.pins.gpio9, esp_hal::gpio::Pull::Up);
-
-    // spawner.must_spawn(button_task(button, display_sender));
 
     // loop {
 

@@ -1,14 +1,17 @@
+use core::str::FromStr;
+
 use embassy_executor::Spawner;
-use embassy_sync::blocking_mutex::raw::NoopRawMutex;
-use embassy_sync::channel;
+use embassy_sync::blocking_mutex::raw::{CriticalSectionRawMutex, NoopRawMutex};
+use embassy_sync::channel::{self, Sender};
 use embedded_io_async::Read;
 use esp_hal::peripherals::UART0;
 use esp_hal::uart::{UartRx, UartTx};
 use esp_hal::Async;
 use esp_hal::{clock::Clocks, uart::Uart};
-use heapless::Vec;
+use heapless::{String, Vec};
 use shared::{
-    deserialize_crc_cobs, serialize_crc_cobs, Message, Response, MESSAGE_SIZE, RESPONSE_SIZE,
+    deserialize_crc_cobs, serialize_crc_cobs, DisplayUpdate, Message, Response, MESSAGE_SIZE,
+    RESPONSE_SIZE,
 };
 
 /// Constructs Uart instance and starts serial read and write tasks
@@ -18,18 +21,32 @@ use shared::{
 /// # Errors
 ///
 /// This function will return an error if spawning a task fails.
-pub fn setup(
+pub async fn setup(
     spawner: &Spawner,
     uart: UART0,
     clocks: &Clocks<'_>,
     broker_sender: channel::Sender<'static, NoopRawMutex, Message, 10>,
     writer_receiver: channel::Receiver<'static, NoopRawMutex, Response, 10>,
+    display_sender: Sender<'static, CriticalSectionRawMutex, DisplayUpdate, 10>,
 ) -> Result<(), SerialError> {
+    display_sender
+        .send(DisplayUpdate::StatusUpdate(
+            String::from_str("Serial init").unwrap(),
+        ))
+        .await;
+
     let uart = Uart::new_async(uart, clocks);
     let (tx, rx) = uart.split();
 
     spawner.spawn(read_serial(rx, broker_sender))?;
     spawner.spawn(write_serial(tx, writer_receiver))?;
+
+    display_sender
+        .send(DisplayUpdate::StatusUpdate(
+            String::from_str("Serial init done").unwrap(),
+        ))
+        .await;
+
     Ok(())
 }
 
