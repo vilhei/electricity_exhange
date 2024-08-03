@@ -7,6 +7,7 @@ use embassy_sync::blocking_mutex::raw::NoopRawMutex;
 use embassy_sync::mutex::Mutex;
 use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, channel::Sender};
 use embassy_time::{Duration, Timer};
+use esp_hal::timer::systimer::SystemTimer;
 use esp_hal::{
     clock::Clocks,
     peripherals::{RADIO_CLK, SYSTIMER, WIFI},
@@ -33,7 +34,6 @@ pub struct WifiPeripherals<'a> {
     pub wifi: WIFI,
 }
 
-// #[allow(clippy::too_many_arguments)]
 pub async fn connect(
     spawner: &Spawner,
     mut rng: Rng,
@@ -50,7 +50,7 @@ pub async fn connect(
     let seed = generate_rand_u64(&mut rng);
 
     // WIFI stuff
-    let timer = esp_hal::timer::systimer::SystemTimer::new(wifi_peripherals.systimer).alarm0;
+    let timer = SystemTimer::new(wifi_peripherals.systimer).alarm0;
     let init = esp_wifi::initialize(
         EspWifiInitFor::Wifi,
         timer,
@@ -103,6 +103,11 @@ pub async fn connect(
     while stack.config_v4().is_none() {
         Timer::after(Duration::from_millis(500)).await;
     }
+    display_sender
+        .send(DisplayUpdate::StatusUpdate(
+            String::from_str("Wifi init done").unwrap(),
+        ))
+        .await;
 
     Ok(stack)
 }

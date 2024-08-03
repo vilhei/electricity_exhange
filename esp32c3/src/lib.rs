@@ -5,6 +5,7 @@ use esp_hal::rng::Rng;
 
 pub mod client;
 pub mod display;
+pub mod http;
 pub mod serial;
 pub mod storage;
 pub mod styles;

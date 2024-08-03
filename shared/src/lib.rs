@@ -96,6 +96,7 @@ pub enum DisplayBrightness {
     High,
 }
 
+/// Does not seem to work
 impl DcsCommand for DisplayBrightness {
     fn instruction(&self) -> u8 {
         0x51

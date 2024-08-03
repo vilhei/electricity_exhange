@@ -38,8 +38,8 @@ impl NonVolatileStorage {
         critical_section::with(|_| unsafe {
             if _NON_VOLATILE_STORAGE_TAKEN {
                 panic!("NonVolatileStorage already taken");
+                _NON_VOLATILE_STORAGE_TAKEN = true;
             }
-            _NON_VOLATILE_STORAGE_TAKEN = true;
             Self::steal()
         })
     }

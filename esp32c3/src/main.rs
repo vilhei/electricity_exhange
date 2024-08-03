@@ -7,6 +7,7 @@ use core::str::FromStr;
 
 use display_interface_spi::SPIInterface;
 use electricity_exhange::{
+    client::Client,
     storage::NonVolatileStorage,
     tasks::broker,
     wifi::{self, WifiPeripherals},
@@ -14,13 +15,13 @@ use electricity_exhange::{
 use embassy_executor::Spawner;
 use embassy_sync::{
     blocking_mutex::raw::{CriticalSectionRawMutex, NoopRawMutex},
-    channel::{Channel, Sender},
+    channel::Channel,
     mutex::Mutex,
 };
 use embedded_hal_bus::spi::ExclusiveDevice;
 use esp_hal::{
     clock::ClockControl,
-    gpio::{Gpio9, Input, Io, Level, Output, NO_PIN},
+    gpio::{Io, Level, Output, NO_PIN},
     interrupt::Priority,
     peripherals::Peripherals,
     prelude::*,
@@ -32,7 +33,7 @@ use esp_hal::{
 use esp_hal_embassy::InterruptExecutor;
 // use esp_println::println;
 use heapless::String;
-use shared::{DisplayBrightness, DisplayUpdate, Message, Response};
+use shared::{DisplayUpdate, Message, Response};
 use static_cell::{ConstStaticCell, StaticCell};
 
 use esp_backtrace as _; // Panic behaviour
@@ -57,7 +58,6 @@ static HIGH_PRIO_EXECUTOR: StaticCell<InterruptExecutor<2>> = StaticCell::new();
 
 #[main]
 async fn main(spawner: Spawner) {
-    // println!("Init!");
     let peripherals = Peripherals::take();
     let system = SystemControl::new(peripherals.SYSTEM);
     let clocks = ClockControl::max(system.clock_control).freeze();
@@ -100,7 +100,8 @@ async fn main(spawner: Spawner) {
 
     let display_sender = display_channel.sender();
 
-    let nvs_storage = NVS_STORAGE.init(Mutex::new(NonVolatileStorage::take()));
+    let nvs_storage: &'static Mutex<NoopRawMutex, NonVolatileStorage> =
+        &*NVS_STORAGE.init(Mutex::new(NonVolatileStorage::take()));
 
     let wifi_peripherals = WifiPeripherals {
         systimer: peripherals.SYSTIMER,
@@ -113,15 +114,6 @@ async fn main(spawner: Spawner) {
         .await
         .unwrap();
 
-    display_sender
-        .send(DisplayUpdate::StatusUpdate(
-            String::from_str("Wifi init done").unwrap(),
-        ))
-        .await;
-
-    let mut _client = electricity_exhange::client::Client::new(stack);
-    // let res = client.request().await;
-
     let broker_channel = BROKER_CHANNEL.take();
     let writer_channel = WRITER_CHANNEL.take();
 
@@ -129,6 +121,7 @@ async fn main(spawner: Spawner) {
         broker_channel.receiver(),
         writer_channel.sender(),
         display_sender,
+        nvs_storage,
     ));
 
     electricity_exhange::serial::setup(

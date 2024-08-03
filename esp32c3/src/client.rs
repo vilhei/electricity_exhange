@@ -6,7 +6,11 @@ use embassy_net::{
     Stack,
 };
 use esp_wifi::wifi::{WifiDevice, WifiStaDevice};
-use reqwless::{client::HttpClient, request::RequestBuilder};
+use reqwless::{
+    client::HttpClient,
+    headers::ContentType,
+    request::{Method, RequestBuilder},
+};
 use static_cell::{ConstStaticCell, StaticCell};
 
 static TCP_CLIENT_STATE: ConstStaticCell<TcpClientState<1, 4096, 4096>> =
@@ -44,10 +48,10 @@ impl Client<Ready<'_>> {
         let mut request = self
             .state
             .client
-            .request(reqwless::request::Method::GET, "http://httpbin.org/get")
+            .request(Method::GET, "http://httpbin.org/get")
             .await
             .unwrap()
-            .content_type(reqwless::headers::ContentType::ApplicationJson);
+            .content_type(ContentType::ApplicationJson);
 
         let response = request.send(&mut self.buffer).await.unwrap();
         let body = from_utf8(response.body().read_to_end().await.unwrap()).unwrap();

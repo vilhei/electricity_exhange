@@ -9,3 +9,13 @@ shared = { path = "../shared/" }
 serialport = "4.4.0"
 heapless = "0.8.0"
 corncobs = "0.1.3"
+ratatui = "0.27.0"
+color-eyre = "0.6.3"
+tui-logger = { version = "0.11.2", features = ["crossterm", "tracing", "tracing-subscriber", "tracing-support"] }
+tracing-error = "0.2.0"
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+directories = "5.0.1"
+lazy_static = "1.5.0"
+log = "0.4.22"
+chrono = "0.4.38"

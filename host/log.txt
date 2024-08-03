@@ -1,0 +1,99 @@
+[2024:08:03 17:50:18]:INFO:App:src/main.rs:34: message: Logging initialized
+[2024:08:03 17:50:23]:INFO:host::update:src/update.rs:20: message: Fetching serial ports
+[2024:08:03 17:50:24]:INFO:host::update:src/update.rs:20: message: Fetching serial ports
+[2024:08:03 17:50:24]:INFO:host::update:src/update.rs:20: message: Fetching serial ports
+[2024:08:03 17:50:24]:INFO:host::update:src/update.rs:20: message: Fetching serial ports
+[2024:08:03 17:50:24]:INFO:host::update:src/update.rs:20: message: Fetching serial ports
+[2024:08:03 17:50:25]:INFO:host::update:src/update.rs:20: message: Fetching serial ports
+[2024:08:03 17:50:25]:INFO:host::update:src/update.rs:20: message: Fetching serial ports
+[2024:08:03 17:50:25]:INFO:host::update:src/update.rs:20: message: Fetching serial ports
+[2024:08:03 17:50:25]:INFO:host::update:src/update.rs:20: message: Fetching serial ports
+[2024:08:03 17:50:25]:INFO:host::update:src/update.rs:20: message: Fetching serial ports
+[2024:08:03 17:52:05]:INFO:App:src/main.rs:34: message: Logging initialized
+[2024:08:03 17:52:05]:INFO:host::update:src/update.rs:20: message: Fetching serial ports
+[2024:08:03 17:52:07]:INFO:host::update:src/update.rs:20: message: Fetching serial ports
+[2024:08:03 17:52:15]:INFO:App:src/main.rs:34: message: Logging initialized
+[2024:08:03 17:52:15]:INFO:host::update:src/update.rs:20: message: Fetching serial ports
+[2024:08:03 17:52:16]:INFO:host::update:src/update.rs:20: message: Fetching serial ports
+[2024:08:03 17:52:16]:INFO:host::update:src/update.rs:20: message: Fetching serial ports
+[2024:08:03 17:57:27]:INFO:App:src/main.rs:34: message: Logging initialized
+[2024:08:03 17:57:36]:INFO:App:src/main.rs:34: message: Logging initialized
+[2024:08:03 17:57:51]:INFO:App:src/main.rs:34: message: Logging initialized
+[2024:08:03 17:57:52]:WARN:host::update:src/update.rs:19: message: Fetching serial ports
+[2024:08:03 17:57:54]:WARN:host::update:src/update.rs:19: message: Fetching serial ports
+[2024:08:03 17:57:54]:WARN:host::update:src/update.rs:19: message: Fetching serial ports
+[2024:08:03 17:58:00]:INFO:App:src/main.rs:34: message: Logging initialized
+[2024:08:03 17:58:09]:INFO:App:src/main.rs:34: message: Logging initialized
+[2024:08:03 17:58:09]:INFO:host::update:src/update.rs:19: message: Fetching serial ports
+[2024:08:03 17:58:10]:INFO:host::update:src/update.rs:19: message: Fetching serial ports
+[2024:08:03 17:58:10]:INFO:host::update:src/update.rs:19: message: Fetching serial ports
+[2024:08:03 17:58:10]:INFO:host::update:src/update.rs:19: message: Fetching serial ports
+[2024:08:03 17:58:10]:INFO:host::update:src/update.rs:19: message: Fetching serial ports
+[2024:08:03 17:58:58]:INFO:App:src/main.rs:35: message: Logging initialized
+[2024:08:03 17:58:58]:TRACE:log:?:0: log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs log.module_path: mio::poll log.line: 551 log.target: mio::poll message: registering event source with poller: token=Token(0), interests=READABLE
+[2024:08:03 17:58:58]:TRACE:log:?:0: log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs log.module_path: mio::poll log.line: 551 log.target: mio::poll message: registering event source with poller: token=Token(1), interests=READABLE
+[2024:08:03 17:59:00]:INFO:host::update:src/update.rs:19: message: Fetching serial ports
+[2024:08:03 17:59:01]:INFO:host::update:src/update.rs:19: message: Fetching serial ports
+[2024:08:03 17:59:17]:INFO:App:src/main.rs:35: message: Logging initialized
+[2024:08:03 17:59:17]:TRACE:log:?:0: log.module_path: mio::poll message: registering event source with poller: token=Token(0), interests=READABLE log.target: mio::poll log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs log.line: 551
+[2024:08:03 17:59:17]:TRACE:log:?:0: log.line: 551 message: registering event source with poller: token=Token(1), interests=READABLE log.target: mio::poll log.module_path: mio::poll log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs
+[2024:08:03 17:59:18]:TRACE:host::update:src/update.rs:19: message: Fetching serial ports
+[2024:08:03 17:59:19]:TRACE:host::update:src/update.rs:19: message: Fetching serial ports
+[2024:08:03 17:59:54]:INFO:App:src/main.rs:35: excitement: yay! message: Logging initialized
+[2024:08:03 17:59:54]:TRACE:log:?:0: log.line: 551 message: registering event source with poller: token=Token(0), interests=READABLE log.target: mio::poll log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs log.module_path: mio::poll
+[2024:08:03 17:59:54]:TRACE:log:?:0: log.line: 551 message: registering event source with poller: token=Token(1), interests=READABLE log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs log.target: mio::poll log.module_path: mio::poll
+[2024:08:03 18:00:04]:TRACE:host::update:src/update.rs:19: message: Fetching serial ports
+[2024:08:03 18:00:05]:TRACE:host::update:src/update.rs:19: message: Fetching serial ports
+[2024:08:03 18:03:00]:INFO:App:src/main.rs:35: message: Logging initialized excitement: yay!
+[2024:08:03 18:03:00]:TRACE:log:?:0: message: registering event source with poller: token=Token(0), interests=READABLE log.module_path: mio::poll log.target: mio::poll log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs log.line: 551
+[2024:08:03 18:03:00]:TRACE:log:?:0: log.target: mio::poll log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs log.module_path: mio::poll log.line: 551 message: registering event source with poller: token=Token(1), interests=READABLE
+[2024:08:03 18:03:02]:TRACE:host::update:src/update.rs:19: message: Fetching serial ports
+[2024:08:03 18:03:04]:TRACE:host::update:src/update.rs:19: message: Fetching serial ports
+[2024:08:03 18:03:31]:INFO:App:src/main.rs:35: message: Logging initialized excitement: yay!
+[2024:08:03 18:03:31]:TRACE:log:?:0: log.target: mio::poll log.line: 551 log.module_path: mio::poll message: registering event source with poller: token=Token(0), interests=READABLE log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs
+[2024:08:03 18:03:31]:TRACE:log:?:0: message: registering event source with poller: token=Token(1), interests=READABLE log.line: 551 log.module_path: mio::poll log.target: mio::poll log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs
+[2024:08:03 18:03:33]:TRACE:host::update:src/update.rs:19: message: Fetching serial ports
+[2024:08:03 18:03:35]:TRACE:host::update:src/update.rs:19: message: Fetching serial ports
+[2024:08:03 18:05:20]:INFO:App:src/main.rs:35: message: Logging initialized excitement: yay!
+[2024:08:03 18:05:20]:TRACE:log:?:0: log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs message: registering event source with poller: token=Token(0), interests=READABLE log.line: 551 log.module_path: mio::poll log.target: mio::poll
+[2024:08:03 18:05:20]:TRACE:log:?:0: message: registering event source with poller: token=Token(1), interests=READABLE log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs log.module_path: mio::poll log.line: 551 log.target: mio::poll
+[2024:08:03 18:05:21]:TRACE:host::update:src/update.rs:19: message: Fetching serial ports
+[2024:08:03 18:05:22]:TRACE:host::update:src/update.rs:19: message: Fetching serial ports
+[2024:08:03 18:05:22]:TRACE:host::update:src/update.rs:19: message: Fetching serial ports
+[2024:08:03 18:05:41]:INFO:App:src/main.rs:35: message: Logging initialized excitement: yay!
+[2024:08:03 18:05:41]:TRACE:log:?:0: log.target: mio::poll log.line: 551 message: registering event source with poller: token=Token(0), interests=READABLE log.module_path: mio::poll log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs
+[2024:08:03 18:05:41]:TRACE:log:?:0: log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs log.module_path: mio::poll log.line: 551 message: registering event source with poller: token=Token(1), interests=READABLE log.target: mio::poll
+[2024:08:03 18:05:42]:TRACE:host::update:src/update.rs:19: message: Fetching serial ports
+[2024:08:03 18:05:47]:INFO:App:src/main.rs:35: excitement: yay! message: Logging initialized
+[2024:08:03 18:05:47]:TRACE:log:?:0: message: registering event source with poller: token=Token(0), interests=READABLE log.target: mio::poll log.module_path: mio::poll log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs log.line: 551
+[2024:08:03 18:05:47]:TRACE:log:?:0: message: registering event source with poller: token=Token(1), interests=READABLE log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs log.line: 551 log.target: mio::poll log.module_path: mio::poll
+[2024:08:03 18:05:48]:TRACE:host::update:src/update.rs:19: message: Fetching serial ports
+[2024:08:03 18:06:04]:INFO:App:src/main.rs:35: excitement: yay! message: Logging initialized
+[2024:08:03 18:06:04]:TRACE:log:?:0: log.module_path: mio::poll log.target: mio::poll log.line: 551 message: registering event source with poller: token=Token(0), interests=READABLE log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs
+[2024:08:03 18:06:04]:TRACE:log:?:0: log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs message: registering event source with poller: token=Token(1), interests=READABLE log.line: 551 log.target: mio::poll log.module_path: mio::poll
+[2024:08:03 18:06:05]:INFO:host::update:src/update.rs:19: message: Fetching serial ports
+[2024:08:03 18:06:06]:INFO:host::update:src/update.rs:19: message: Fetching serial ports
+[2024:08:03 19:56:24]:INFO:host::update:src/update.rs:19: message: Fetching serial ports
+[2024:08:03 19:57:29]:INFO:App:src/main.rs:31: message: Logging initialized excitement: yay!
+[2024:08:03 19:57:29]:TRACE:log:?:0: log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs log.module_path: mio::poll log.target: mio::poll message: registering event source with poller: token=Token(0), interests=READABLE log.line: 551
+[2024:08:03 19:57:29]:TRACE:log:?:0: log.module_path: mio::poll log.line: 551 log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs log.target: mio::poll message: registering event source with poller: token=Token(1), interests=READABLE
+[2024:08:03 20:03:32]:INFO:App:src/tracing.rs:24: message: Logging initialized
+[2024:08:03 20:03:32]:TRACE:log:?:0: log.line: 551 log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs log.target: mio::poll log.module_path: mio::poll message: registering event source with poller: token=Token(0), interests=READABLE
+[2024:08:03 20:03:32]:TRACE:log:?:0: message: registering event source with poller: token=Token(1), interests=READABLE log.line: 551 log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs log.target: mio::poll log.module_path: mio::poll
+[2024:08:03 20:03:41]:INFO:host::update:src/update.rs:19: message: Fetching serial ports
+[2024:08:03 20:04:11]:INFO:host::tracing:src/tracing.rs:21: message: SystemTime { tv_sec: 1722704651, tv_nsec: 840697788 }
+[2024:08:03 20:04:11]:INFO:App:src/tracing.rs:22: message: Logging initialized
+[2024:08:03 20:04:11]:TRACE:log:?:0: log.module_path: mio::poll log.line: 551 log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs log.target: mio::poll message: registering event source with poller: token=Token(0), interests=READABLE
+[2024:08:03 20:04:11]:TRACE:log:?:0: log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs log.line: 551 log.target: mio::poll log.module_path: mio::poll message: registering event source with poller: token=Token(1), interests=READABLE
+[2024:08:03 20:05:01]:INFO:host::tracing:src/tracing.rs:21: message: 2024-08-03 20:05:01.302684928 +03:00
+[2024:08:03 20:05:01]:INFO:App:src/tracing.rs:22: message: Logging initialized
+[2024:08:03 20:05:01]:TRACE:log:?:0: message: registering event source with poller: token=Token(0), interests=READABLE log.target: mio::poll log.line: 551 log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs log.module_path: mio::poll
+[2024:08:03 20:05:01]:TRACE:log:?:0: message: registering event source with poller: token=Token(1), interests=READABLE log.module_path: mio::poll log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs log.line: 551 log.target: mio::poll
+[2024:08:03 20:07:08]:INFO:host::tracing:src/tracing.rs:21: message: 2024_08_d__20_07_08
+[2024:08:03 20:07:08]:INFO:App:src/tracing.rs:22: message: Logging initialized
+[2024:08:03 20:07:08]:TRACE:log:?:0: log.target: mio::poll message: registering event source with poller: token=Token(0), interests=READABLE log.line: 551 log.module_path: mio::poll log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs
+[2024:08:03 20:07:08]:TRACE:log:?:0: message: registering event source with poller: token=Token(1), interests=READABLE log.target: mio::poll log.module_path: mio::poll log.line: 551 log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs
+[2024:08:03 20:07:24]:INFO:host::tracing:src/tracing.rs:21: message: 2024_08_03__20_07_24
+[2024:08:03 20:07:24]:INFO:App:src/tracing.rs:22: message: Logging initialized
+[2024:08:03 20:07:24]:TRACE:log:?:0: log.line: 551 log.module_path: mio::poll log.target: mio::poll message: registering event source with poller: token=Token(0), interests=READABLE log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs
+[2024:08:03 20:07:24]:TRACE:log:?:0: message: registering event source with poller: token=Token(1), interests=READABLE log.target: mio::poll log.module_path: mio::poll log.line: 551 log.file: /home/ville/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mio-0.8.11/src/poll.rs
