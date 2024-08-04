@@ -1,11 +1,6 @@
 #![feature(panic_payload_as_str)]
-use std::{
-    backtrace,
-    io::stdout,
-    panic::{self, PanicHookInfo, PanicInfo},
-};
+use std::io::stdout;
 
-use color_eyre::config::HookBuilder;
 use log::info;
 use ratatui::{
     crossterm::{
@@ -15,8 +10,6 @@ use ratatui::{
     },
     prelude::*,
 };
-use text::ToText;
-use tracing::error;
 
 pub fn init_terminal() -> color_eyre::Result<Terminal<impl Backend>> {
     enable_raw_mode()?;

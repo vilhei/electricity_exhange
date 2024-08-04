@@ -1,11 +1,11 @@
 use color_eyre::eyre::Context;
-use tracing::{error, event, info, instrument, trace, Level};
+use tracing::{info, instrument, trace, Level};
 
 use crate::model::{MainScreenState, Model, PopUpState, RunningState};
 
 pub fn update(model: &mut Model, message: &UiMessage) -> Option<UiMessage> {
     match message {
-        UiMessage::FetchSerialPorts => update_serial_ports(model),
+        UiMessage::FetchSerialPorts => fetch_serial_ports(model),
         UiMessage::ForceQuit => force_quit(model),
         UiMessage::SelectionUp => move_selection_up(model),
         UiMessage::SelectionDown => move_selection_down(model),
@@ -18,21 +18,21 @@ pub fn update(model: &mut Model, message: &UiMessage) -> Option<UiMessage> {
     }
 }
 
-#[instrument]
-fn update_serial_ports(model: &mut Model) -> Option<UiMessage> {
+#[instrument(ret(level=Level::TRACE), skip_all, fields(state=model.running_state.to_string(), ports_fetched))]
+fn fetch_serial_ports(model: &mut Model) -> Option<UiMessage> {
     if let RunningState::SelectSerialPort(s) = &mut model.running_state {
         // trace!("Fetching serial ports");
-        trace!("Fetching serial ports");
+        // trace!("Fetching serial ports");
         s.ports = serialport::available_ports()
             .wrap_err("Failed to fetch serial ports")
             .unwrap();
+        tracing::Span::current().record("ports_fetched", s.ports.len());
     } else {
         panic!(
             "Cannot fetch serial ports if not in SelectSerialPort state, currently in {:?}",
             model.running_state
         );
     }
-
     None
 }
 

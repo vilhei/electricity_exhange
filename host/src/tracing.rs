@@ -1,15 +1,10 @@
 use color_eyre::eyre::Result;
 use tracing::{info, instrument, level_filters::LevelFilter};
 use tracing_appender::rolling::Rotation;
-use tracing_subscriber::{
-    self,
-    fmt::{self, writer::MakeWriterExt},
-    layer::SubscriberExt,
-    util::SubscriberInitExt,
-    Layer,
-};
+use tracing_subscriber::{self, fmt, layer::SubscriberExt, util::SubscriberInitExt, Layer};
 use tui_logger::{set_default_level, TuiTracingSubscriberLayer};
 
+// TODO create 2 different logging files? One for general end user and other for debugging with more information?
 #[instrument(level = "info")]
 pub fn initialize_logging() -> Result<()> {
     tui_logger::set_level_for_target("log", log::LevelFilter::Info);

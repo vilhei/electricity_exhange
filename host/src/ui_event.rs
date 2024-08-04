@@ -59,16 +59,20 @@ pub fn handle_select_serial_port_key_event(key_event: &KeyEvent) -> Result<Optio
         _ => Ok(None),
     }
 }
-
+#[allow(unused)]
 pub fn handle_main_key_event(key_event: &KeyEvent) -> Result<Option<UiMessage>> {
     todo!()
 }
+
+#[allow(unused)]
 pub fn handle_configure_key_event(key_event: &KeyEvent) -> Result<Option<UiMessage>> {
     todo!()
 }
+#[allow(unused)]
 pub fn handle_get_information_key_event(key_event: &KeyEvent) -> Result<Option<UiMessage>> {
     todo!()
 }
+#[allow(unused)]
 pub fn handle_quit_key_event(key_event: &KeyEvent) -> Result<Option<UiMessage>> {
     todo!()
 }

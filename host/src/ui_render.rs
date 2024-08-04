@@ -1,12 +1,11 @@
-use std::{borrow::BorrowMut, string::String};
+use std::borrow::BorrowMut;
 
 use host::centered_rect;
 use ratatui::{
     prelude::*,
-    widgets::{block::Title, Block, Borders, Clear, List, ListItem, Padding, Paragraph, Wrap},
+    widgets::{block::Title, Block, Borders, Clear, List, ListItem, Paragraph, Wrap},
 };
 use serialport::SerialPortInfo;
-use tracing::{instrument, warn};
 use tui_logger::{TuiLoggerLevelOutput, TuiLoggerWidget};
 
 use crate::model::{
@@ -19,7 +18,7 @@ pub fn view(model: &mut Model, f: &mut Frame) {
 
     match model.running_state.borrow_mut() {
         RunningState::SelectSerialPort(state) => render_select_serialport_screen(state, f, &area),
-        RunningState::Main(state) => render_main_screen(state, f),
+        RunningState::Main(state) => render_main_screen(state, f, &area),
         RunningState::Configure(state) => render_configure_screen(state, f),
         RunningState::GetInformation(state) => render_get_information_screen(state, f),
         RunningState::Quit(state) => render_quit_screen(state, f),
@@ -136,18 +135,40 @@ fn serial_port_to_list_item<'a>(p: &SerialPortInfo) -> ListItem<'a> {
     }
 }
 
-fn render_main_screen(state: &MainScreenState, f: &mut Frame) {
-    todo!()
+fn render_main_screen(state: &MainScreenState, f: &mut Frame, area: &Rect) {
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Length(3), Constraint::Fill(1)])
+        .split(*area);
+
+    let title_block = Block::default()
+        .borders(Borders::ALL)
+        .style(Style::default())
+        // .bg(Color::Red)
+        .border_type(ratatui::widgets::BorderType::Rounded);
+
+    let title = Paragraph::new(Span::styled(
+        format!("Main View - selected port : {}", state.port_name),
+        Style::default()
+            .fg(Color::White)
+            .add_modifier(Modifier::BOLD),
+    ))
+    .alignment(Alignment::Center)
+    .block(title_block);
+    f.render_widget(title, chunks[0]);
 }
 
+#[allow(unused)]
 fn render_configure_screen(state: &ConfigureScreenState, f: &mut Frame) {
     todo!()
 }
 
+#[allow(unused)]
 fn render_get_information_screen(state: &GetInformationScreenState, f: &mut Frame) {
     todo!()
 }
 
+#[allow(unused)]
 fn render_quit_screen(state: &QuitScreenState, f: &mut Frame) {
     todo!()
 }
