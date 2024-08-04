@@ -29,6 +29,14 @@ fn handle_key_event(key_event: &KeyEvent, model: &Model) -> Result<Option<UiMess
         return Ok(Some(UiMessage::ForceQuit));
     }
 
+    // Force user to close possible popup before continuing with other actions
+    if model.popup.is_some() {
+        match key_event.code {
+            KeyCode::Esc => return Ok(Some(UiMessage::ClosePopUp)),
+            _ => return Ok(None),
+        }
+    }
+
     match model.running_state {
         crate::model::RunningState::SelectSerialPort(_) => {
             handle_select_serial_port_key_event(key_event)
@@ -43,10 +51,11 @@ fn handle_key_event(key_event: &KeyEvent, model: &Model) -> Result<Option<UiMess
 
 pub fn handle_select_serial_port_key_event(key_event: &KeyEvent) -> Result<Option<UiMessage>> {
     match key_event.code {
-        KeyCode::Enter => Ok(Some(UiMessage::FetchSerialPorts)),
+        KeyCode::Char('f') => Ok(Some(UiMessage::FetchSerialPorts)),
         KeyCode::Up => Ok(Some(UiMessage::SelectionUp)),
         KeyCode::Down => Ok(Some(UiMessage::SelectionDown)),
         KeyCode::Esc => Ok(Some(UiMessage::ClearSelection)),
+        KeyCode::Enter => Ok(Some(UiMessage::StateChangeFromSerialPortToMain)),
         _ => Ok(None),
     }
 }

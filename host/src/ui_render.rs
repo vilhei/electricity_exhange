@@ -1,16 +1,17 @@
 use std::{borrow::BorrowMut, string::String};
 
+use host::centered_rect;
 use ratatui::{
     prelude::*,
-    widgets::{block::Title, Block, Borders, List, ListItem, Padding, Paragraph},
+    widgets::{block::Title, Block, Borders, Clear, List, ListItem, Padding, Paragraph, Wrap},
 };
 use serialport::SerialPortInfo;
 use tracing::{instrument, warn};
 use tui_logger::{TuiLoggerLevelOutput, TuiLoggerWidget};
 
 use crate::model::{
-    ConfigureScreenState, GetInformationScreenState, MainScreenState, Model, QuitScreenState,
-    RunningState, SerialPortScreenState,
+    ConfigureScreenState, GetInformationScreenState, MainScreenState, Model, PopUpState,
+    QuitScreenState, RunningState, SerialPortScreenState,
 };
 
 pub fn view(model: &mut Model, f: &mut Frame) {
@@ -24,6 +25,7 @@ pub fn view(model: &mut Model, f: &mut Frame) {
         RunningState::Quit(state) => render_quit_screen(state, f),
         RunningState::ForceQuit => todo!(),
     }
+    render_popup(model, f, Some(area));
 }
 
 fn render_common_screen(f: &mut Frame) -> Rect {
@@ -37,6 +39,44 @@ fn render_common_screen(f: &mut Frame) -> Rect {
 
     f.render_widget(log_widget, chunks[1]);
     chunks[0]
+}
+
+fn render_popup(model: &Model, f: &mut Frame, target_area: Option<Rect>) {
+    if let Some(p) = &model.popup {
+        match p {
+            PopUpState::Message(m) => {
+                let mut area = target_area.unwrap_or(f.size());
+                area = centered_rect(50, 50, area);
+
+                f.render_widget(Clear, area);
+
+                let block = Block::new()
+                    .bg(Color::Rgb(99, 168, 159))
+                    // .fg(Color::Red)rgb(224, 226, 110)
+                    .border_type(ratatui::widgets::BorderType::Rounded)
+                    .title_alignment(Alignment::Center)
+                    .title_style(
+                        Style::default()
+                            .fg(Color::White)
+                            .add_modifier(Modifier::BOLD),
+                    )
+                    .title("Popup");
+
+                let msg_text = Line::from(Span::styled(*m, Style::default()).fg(Color::White));
+                let exit_text = Line::from(Span::styled(
+                    "Press [Esc] to close the popup",
+                    Style::default(),
+                ));
+
+                let text_content = Text::from_iter([msg_text, exit_text]);
+                let msg = Paragraph::new(text_content)
+                    .wrap(Wrap { trim: true })
+                    .block(block)
+                    .alignment(Alignment::Center);
+                f.render_widget(msg, area);
+            }
+        }
+    }
 }
 
 fn render_select_serialport_screen(state: &mut SerialPortScreenState, f: &mut Frame, area: &Rect) {

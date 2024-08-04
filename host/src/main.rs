@@ -6,27 +6,23 @@ mod update;
 
 use std::{error::Error, str::FromStr, thread::sleep, time::Duration};
 
-use ::tracing::{debug, error, info, subscriber, trace, warn, Level};
 use host::{init_terminal, install_panic_hook, restore_terminal};
-use log::LevelFilter;
 // use log::{info, warn, LevelFilter};
+use ::tracing::info;
 use model::{Model, RunningState};
 use shared::{deserialize_crc_cobs, serialize_crc_cobs, Message, Response, WifiInfo, MESSAGE_SIZE};
 use tracing::initialize_logging;
-use tracing_error::ErrorLayer;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-use tui_logger::{init_logger, set_default_level, set_log_file, TuiTracingSubscriberLayer};
 use ui_event::handle_event;
 // use update::UiMessage;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    install_panic_hook().unwrap();
     initialize_logging()?;
+    install_panic_hook().unwrap();
+
+    info!("program start");
+
     let mut terminal = init_terminal()?;
     let mut model = Model::new();
-
-    warn!("This is a warning");
-    error!("This is a error");
 
     while RunningState::ForceQuit != model.running_state {
         terminal.draw(|frame| ui_render::view(&mut model, frame))?;
