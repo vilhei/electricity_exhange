@@ -3,7 +3,16 @@ use std::str::FromStr;
 use serde::{Deserialize, Serialize};
 use strum::VariantNames;
 
-#[derive(Debug, Serialize, strum::EnumString, strum::VariantNames, strum::EnumMessage)]
+#[derive(
+    Debug,
+    Serialize,
+    strum::EnumString,
+    strum::VariantNames,
+    strum::EnumMessage,
+    strum::AsRefStr,
+    Copy,
+    Clone,
+)]
 pub enum UiMessage {
     #[strum(message = "Lists available serial ports")]
     FetchSerialPorts,
@@ -35,3 +44,6 @@ impl<'de> Deserialize<'de> for UiMessage {
             .map_err(|e| serde::de::Error::unknown_variant(&e.to_string(), UiMessage::VARIANTS))
     }
 }
+
+#[cfg(test)]
+mod tests {}

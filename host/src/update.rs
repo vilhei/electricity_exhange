@@ -16,7 +16,7 @@ pub fn update(model: &mut Model, message: &UiMessage) -> Option<UiMessage> {
         UiMessage::StateChangeFromSerialPortToMain => move_from_serialport_to_main(model),
         UiMessage::MustSelectOne => must_select_one(model),
         UiMessage::ClosePopUp => close_popup(model),
-        UiMessage::ShowKeyBindings => todo!(),
+        UiMessage::ShowKeyBindings => show_keybindings(model),
     }
 }
 
@@ -167,6 +167,11 @@ fn must_select_one(model: &mut Model) -> Option<UiMessage> {
         RunningState::ForceQuit => todo!(),
     }
 
+    None
+}
+
+fn show_keybindings(model: &mut Model) -> Option<UiMessage> {
+    model.popup = Some(PopUpState::ShowKeyBindings);
     None
 }
 

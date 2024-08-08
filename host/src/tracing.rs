@@ -1,6 +1,7 @@
 use color_eyre::eyre::Result;
 use tracing::{info, instrument, level_filters::LevelFilter};
 use tracing_appender::rolling::Rotation;
+use tracing_error::ErrorLayer;
 use tracing_subscriber::{self, fmt, layer::SubscriberExt, util::SubscriberInitExt, Layer};
 use tui_logger::{set_default_level, TuiTracingSubscriberLayer};
 
@@ -8,7 +9,7 @@ use tui_logger::{set_default_level, TuiTracingSubscriberLayer};
 #[instrument(level = "info")]
 pub fn initialize_logging() -> Result<()> {
     tui_logger::set_level_for_target("log", log::LevelFilter::Info);
-    set_default_level(log::LevelFilter::Trace);
+    set_default_level(log::LevelFilter::Info);
 
     let format = fmt::format()
         .with_level(true) // don't include levels in formatted output
@@ -35,6 +36,7 @@ pub fn initialize_logging() -> Result<()> {
     tracing_subscriber::registry()
         .with(tui_layer)
         .with(file_layer)
+        .with(ErrorLayer::default())
         .init();
 
     info!(target:"App", "Logging initialized");

@@ -1,3 +1,4 @@
+use host::settings::{keybindings::KeyBindings, Settings};
 use ratatui::widgets::ListState;
 use serialport::SerialPortInfo;
 
@@ -5,6 +6,7 @@ use serialport::SerialPortInfo;
 pub struct Model<'a> {
     pub running_state: RunningState,
     pub popup: Option<PopUpState<'a>>,
+    pub settings: Settings,
 }
 
 impl Model<'_> {
@@ -12,6 +14,18 @@ impl Model<'_> {
         Self {
             running_state: RunningState::SelectSerialPort(Default::default()),
             popup: None,
+            settings: Settings::new(),
+        }
+    }
+
+    pub fn get_keybinding(&self) -> &KeyBindings {
+        match self.running_state {
+            RunningState::SelectSerialPort(_) => &self.settings.serialport_keybindings,
+            RunningState::Main(_) => todo!(),
+            RunningState::Configure(_) => todo!(),
+            RunningState::GetInformation(_) => todo!(),
+            RunningState::Quit(_) => todo!(),
+            RunningState::ForceQuit => todo!(),
         }
     }
 }
@@ -67,6 +81,7 @@ pub struct QuitScreenState {}
 #[derive(Debug)]
 pub enum PopUpState<'a> {
     Message(&'a str),
+    ShowKeyBindings,
 }
 
 #[cfg(test)]

@@ -1,23 +1,21 @@
-# For each keybinding [action] must be set to one of the following values:
+# Each keybinding must be set to one one the actions.
+# And each action needs to be assigned to some keybinding
+# Actions : 
 # - FetchSerialPorts : (Lists available serial ports)
 # - ForceQuit : (Quits the application without saving anything or checking with user)
 # - SelectionUp
 # - SelectionDown
 # - ClearSelection
-# - SelectLast
-# - SelectFirst
 # - StateChangeFromSerialPortToMain : (Connect to selected serial port and continue)
-# - MustSelectOne
-# - ClosePopUp
 # - ShowKeyBindings : (Show keybindings, these can be configured in the settings.toml file)
 
 # Above is automatically generated comment by build process.
 
 [serialport_keybindings]
-f = { action = "FetchSerialPorts", text = "Lists all serial ports" }
-up = { action = "SelectionUp", text = "Moves current selection up" }
-down = { action = "SelectionDown", text = "Moves current selection down" }
-enter = { action = "StateChangeFromSerialPortToMain", text = "Connects to currently selected serial port" }
-esc = { action = "ClearSelection", text = "Clears currently selected port" }
-k = { action = "ShowKeyBindings", text = "Shows keybindings" }
-ctrl-c = { action = "ForceQuit", text = "Forcefully quits the program" }
+f = "FetchSerialPorts"
+up = "SelectionUp"
+down = "SelectionDown"
+enter = "StateChangeFromSerialPortToMain"
+esc = "ClearSelection"
+k = "ShowKeyBindings"
+ctrl-c = "ForceQuit"

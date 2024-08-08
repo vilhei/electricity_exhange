@@ -8,14 +8,13 @@ use crate::action::UiMessage;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct KeyBinding {
     pub action: UiMessage,
-    pub text: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
-pub struct KeyBindings(pub HashMap<KeyEvent, KeyBinding>);
+pub struct KeyBindings(pub HashMap<KeyEvent, UiMessage>);
 
 impl std::ops::Deref for KeyBindings {
-    type Target = HashMap<KeyEvent, KeyBinding>;
+    type Target = HashMap<KeyEvent, UiMessage>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -33,7 +32,7 @@ impl<'de> Deserialize<'de> for KeyBindings {
     where
         D: Deserializer<'de>,
     {
-        let parsed_map = HashMap::<String, KeyBinding>::deserialize(deserializer)?;
+        let parsed_map = HashMap::<String, UiMessage>::deserialize(deserializer)?;
 
         let keybindings = parsed_map
             .into_iter()
@@ -41,6 +40,12 @@ impl<'de> Deserialize<'de> for KeyBindings {
             .collect();
 
         Ok(KeyBindings(keybindings))
+    }
+}
+
+impl AsRef<HashMap<KeyEvent, UiMessage>> for KeyBindings {
+    fn as_ref(&self) -> &HashMap<KeyEvent, UiMessage> {
+        self
     }
 }
 
@@ -151,4 +156,67 @@ fn parse_key_code_with_modifiers(
         _ => return Err(format!("Unable to parse {raw}")),
     };
     Ok(KeyEvent::new(c, modifiers))
+}
+
+pub fn key_event_to_string(key_event: &KeyEvent) -> String {
+    let char;
+    let key_code = match key_event.code {
+        KeyCode::Backspace => "backspace",
+        KeyCode::Enter => "enter",
+        KeyCode::Left => "left",
+        KeyCode::Right => "right",
+        KeyCode::Up => "up",
+        KeyCode::Down => "down",
+        KeyCode::Home => "home",
+        KeyCode::End => "end",
+        KeyCode::PageUp => "pageup",
+        KeyCode::PageDown => "pagedown",
+        KeyCode::Tab => "tab",
+        KeyCode::BackTab => "backtab",
+        KeyCode::Delete => "delete",
+        KeyCode::Insert => "insert",
+        KeyCode::F(c) => {
+            char = format!("f({c})");
+            &char
+        }
+        KeyCode::Char(' ') => "space",
+        KeyCode::Char(c) => {
+            char = c.to_string();
+            &char
+        }
+        KeyCode::Esc => "esc",
+        KeyCode::Null => "",
+        KeyCode::CapsLock => "",
+        KeyCode::Menu => "",
+        KeyCode::ScrollLock => "",
+        KeyCode::Media(_) => "",
+        KeyCode::NumLock => "",
+        KeyCode::PrintScreen => "",
+        KeyCode::Pause => "",
+        KeyCode::KeypadBegin => "",
+        KeyCode::Modifier(_) => "",
+    };
+
+    let mut modifiers = Vec::with_capacity(3);
+
+    if key_event.modifiers.intersects(KeyModifiers::CONTROL) {
+        modifiers.push("ctrl");
+    }
+
+    if key_event.modifiers.intersects(KeyModifiers::SHIFT) {
+        modifiers.push("shift");
+    }
+
+    if key_event.modifiers.intersects(KeyModifiers::ALT) {
+        modifiers.push("alt");
+    }
+
+    let mut key = modifiers.join("-");
+
+    if !key.is_empty() {
+        key.push('-');
+    }
+    key.push_str(key_code);
+
+    key
 }

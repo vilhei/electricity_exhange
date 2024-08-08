@@ -26,7 +26,11 @@ pub fn handle_event(model: &Model) -> Result<Option<UiMessage>> {
 
 fn handle_key_event(key_event: &KeyEvent, model: &Model) -> Result<Option<UiMessage>> {
     // Handle ctrl+c force quite before other key events
-    if key_event.modifiers == KeyModifiers::CONTROL && key_event.code == KeyCode::Char('c') {
+    if model
+        .get_keybinding()
+        .get(key_event)
+        .is_some_and(|a| matches!(a, UiMessage::ForceQuit))
+    {
         return Ok(Some(UiMessage::ForceQuit));
     }
 
@@ -40,7 +44,7 @@ fn handle_key_event(key_event: &KeyEvent, model: &Model) -> Result<Option<UiMess
 
     match model.running_state {
         crate::model::RunningState::SelectSerialPort(_) => {
-            handle_select_serial_port_key_event(key_event)
+            handle_select_serial_port_key_event(key_event, model)
         }
         crate::model::RunningState::Main(_) => todo!(),
         crate::model::RunningState::Configure(_) => todo!(),
@@ -50,15 +54,24 @@ fn handle_key_event(key_event: &KeyEvent, model: &Model) -> Result<Option<UiMess
     }
 }
 
-pub fn handle_select_serial_port_key_event(key_event: &KeyEvent) -> Result<Option<UiMessage>> {
-    match key_event.code {
-        KeyCode::Char('f') => Ok(Some(UiMessage::FetchSerialPorts)),
-        KeyCode::Up => Ok(Some(UiMessage::SelectionUp)),
-        KeyCode::Down => Ok(Some(UiMessage::SelectionDown)),
-        KeyCode::Esc => Ok(Some(UiMessage::ClearSelection)),
-        KeyCode::Enter => Ok(Some(UiMessage::StateChangeFromSerialPortToMain)),
-        _ => Ok(None),
-    }
+pub fn handle_select_serial_port_key_event(
+    key_event: &KeyEvent,
+    model: &Model,
+) -> Result<Option<UiMessage>> {
+    Ok(model
+        .settings
+        .serialport_keybindings
+        .get(key_event)
+        .copied())
+
+    // match key_event.code {
+    //     KeyCode::Char('f') => Ok(Some(UiMessage::FetchSerialPorts)),
+    //     KeyCode::Up => Ok(Some(UiMessage::SelectionUp)),
+    //     KeyCode::Down => Ok(Some(UiMessage::SelectionDown)),
+    //     KeyCode::Esc => Ok(Some(UiMessage::ClearSelection)),
+    //     KeyCode::Enter => Ok(Some(UiMessage::StateChangeFromSerialPortToMain)),
+    //     _ => Ok(None),
+    // }
 }
 #[allow(unused)]
 pub fn handle_main_key_event(key_event: &KeyEvent) -> Result<Option<UiMessage>> {

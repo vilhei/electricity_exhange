@@ -4,24 +4,44 @@ use std::{
     str::FromStr,
 };
 
+use action::UiMessage;
 use strum::{EnumMessage, VariantNames};
 
 #[path = "src/action.rs"]
 mod action;
 
-const ACTION_INFO: &str =
-    "# For each keybinding [action] must be set to one of the following values:\n";
+impl UiMessage {
+    /// Returns true if uimessage can be binded to user desired keybind
+    fn is_customizable(&self) -> bool {
+        #[allow(clippy::match_like_matches_macro)]
+        match *self {
+            UiMessage::SelectLast => false,
+            UiMessage::SelectFirst => false,
+            UiMessage::ClosePopUp => false,
+            UiMessage::MustSelectOne => false,
+            _ => true,
+        }
+    }
+}
+
+const ACTION_INFO: &str = "# Each keybinding must be set to one one the actions.
+# And each action needs to be assigned to some keybinding
+# Actions : \n";
 const GENERATED_END: &str = "\n# Above is automatically generated comment by build process.\n\n";
 const SETTINGS_FILE: &str = "./configs/settings.toml";
 
 fn main() {
     // println!("cargo::rerun-if-changed=src/action.rs");
     let mut msg = String::from(ACTION_INFO);
-    action::UiMessage::VARIANTS.iter().for_each(|v| {
-        let mut s = String::from("# - ");
-        s.push_str(v);
 
-        let help_text = match action::UiMessage::from_str(v).unwrap().get_message() {
+    for variant_name in action::UiMessage::VARIANTS {
+        let mut s = String::from("# - ");
+        s.push_str(variant_name);
+        let variant = action::UiMessage::from_str(variant_name).unwrap();
+        if !variant.is_customizable() {
+            continue;
+        }
+        let help_text = match variant.get_message() {
             Some(m) => {
                 let mut tmp = String::from(" : (");
                 tmp.push_str(m);
@@ -34,7 +54,8 @@ fn main() {
         s.push_str(&help_text);
         s.push('\n');
         msg.push_str(&s);
-    });
+    }
+
     msg.push_str(GENERATED_END);
     let mut file_content = String::new();
     let mut file = OpenOptions::new()

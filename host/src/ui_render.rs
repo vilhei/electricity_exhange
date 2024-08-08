@@ -1,11 +1,16 @@
-use std::borrow::BorrowMut;
-
-use host::centered_rect;
+use crossterm::event::KeyEvent;
+use host::{
+    action::UiMessage,
+    centered_rect,
+    settings::keybindings::{key_event_to_string, KeyBindings},
+};
 use ratatui::{
     prelude::*,
     widgets::{block::Title, Block, Borders, Clear, List, ListItem, Paragraph, Wrap},
 };
 use serialport::SerialPortInfo;
+use std::{borrow::BorrowMut, collections::HashMap};
+use strum::EnumMessage;
 use tui_logger::{TuiLoggerLevelOutput, TuiLoggerWidget};
 
 use crate::model::{
@@ -42,40 +47,69 @@ fn render_common_screen(f: &mut Frame) -> Rect {
 
 fn render_popup(model: &Model, f: &mut Frame, target_area: Option<Rect>) {
     if let Some(p) = &model.popup {
+        let mut area = target_area.unwrap_or(f.size());
+        area = centered_rect(50, 50, area);
+        f.render_widget(Clear, area);
+        let block = Block::new()
+            .bg(Color::Rgb(99, 168, 159))
+            // .fg(Color::Red)rgb(224, 226, 110)
+            .border_type(ratatui::widgets::BorderType::Rounded)
+            .title_alignment(Alignment::Center)
+            .title_style(
+                Style::default()
+                    .fg(Color::White)
+                    .add_modifier(Modifier::BOLD),
+            )
+            .title("Popup");
+        f.render_widget(block, area);
+
         match p {
-            PopUpState::Message(m) => {
-                let mut area = target_area.unwrap_or(f.size());
-                area = centered_rect(50, 50, area);
-
-                f.render_widget(Clear, area);
-
-                let block = Block::new()
-                    .bg(Color::Rgb(99, 168, 159))
-                    // .fg(Color::Red)rgb(224, 226, 110)
-                    .border_type(ratatui::widgets::BorderType::Rounded)
-                    .title_alignment(Alignment::Center)
-                    .title_style(
-                        Style::default()
-                            .fg(Color::White)
-                            .add_modifier(Modifier::BOLD),
-                    )
-                    .title("Popup");
-
-                let msg_text = Line::from(Span::styled(*m, Style::default()).fg(Color::White));
-                let exit_text = Line::from(Span::styled(
-                    "Press [Esc] to close the popup",
-                    Style::default(),
-                ));
-
-                let text_content = Text::from_iter([msg_text, exit_text]);
-                let msg = Paragraph::new(text_content)
-                    .wrap(Wrap { trim: true })
-                    .block(block)
-                    .alignment(Alignment::Center);
-                f.render_widget(msg, area);
-            }
+            PopUpState::Message(m) => render_popup_message(area, f, m),
+            PopUpState::ShowKeyBindings => render_keybindings(area, f, model.get_keybinding()),
         }
     }
+}
+
+fn render_popup_message(area: Rect, f: &mut Frame, m: &str) {
+    let msg_text = Line::from(Span::styled(m, Style::default()).fg(Color::White));
+    let exit_text = Line::from(Span::styled(
+        "Press [Esc] to close the popup",
+        Style::default(),
+    ));
+    let text_content = Text::from_iter([msg_text, exit_text]);
+    let msg = Paragraph::new(text_content)
+        .wrap(Wrap { trim: true })
+        .alignment(Alignment::Center);
+    f.render_widget(msg, area);
+}
+
+fn render_keybindings<K>(area: Rect, f: &mut Frame, m: K)
+where
+    K: AsRef<HashMap<KeyEvent, UiMessage>>,
+{
+    let list_items: Vec<ListItem> = m
+        .as_ref()
+        .iter()
+        .map(|(k, a)| {
+            ListItem::new(Line::from(vec![Span::styled(
+                format!("{:<15} | {}", key_event_to_string(k), a.as_ref()),
+                Style::default(),
+            )]))
+        })
+        .collect();
+
+    let list = List::new(list_items);
+    f.render_widget(list, area);
+    // let msg_text = Line::from(Span::styled(m, Style::default()).fg(Color::White));
+    // let exit_text = Line::from(Span::styled(
+    //     "Press [Esc] to close the popup",
+    //     Style::default(),
+    // ));
+    // let text_content = Text::from_iter([msg_text, exit_text]);
+    // let msg = Paragraph::new(text_content)
+    //     .wrap(Wrap { trim: true })
+    //     .alignment(Alignment::Center);
+    // f.render_widget(msg, area);
 }
 
 fn render_select_serialport_screen(state: &mut SerialPortScreenState, f: &mut Frame, area: &Rect) {
