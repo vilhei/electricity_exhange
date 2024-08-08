@@ -38,6 +38,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+#[allow(unused)]
 fn main_old() {
     let ports = serialport::available_ports().expect("No ports found");
     // for p in ports {

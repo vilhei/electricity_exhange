@@ -16,6 +16,7 @@ impl Model<'_> {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Debug, PartialEq, strum::Display)]
 pub enum RunningState {
     SelectSerialPort(SerialPortScreenState),
@@ -25,12 +26,6 @@ pub enum RunningState {
     Quit(QuitScreenState),
     ForceQuit,
 }
-
-// impl std::fmt::Display for RunningState {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         write!(f, self.to_string());
-//     }
-// }
 
 #[derive(Debug, PartialEq)]
 pub struct SerialPortScreenState {

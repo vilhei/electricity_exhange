@@ -1,9 +1,10 @@
 use std::time::Duration;
 
 use color_eyre::{eyre::Ok, Result};
+use host::action::UiMessage;
 use ratatui::crossterm::event::{self, KeyCode, KeyEvent, KeyModifiers};
 
-use crate::{model::Model, update::UiMessage};
+use crate::model::Model;
 
 pub fn handle_event(model: &Model) -> Result<Option<UiMessage>> {
     if event::poll(Duration::from_millis(50))? {

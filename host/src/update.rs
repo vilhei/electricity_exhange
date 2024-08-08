@@ -1,4 +1,5 @@
 use color_eyre::eyre::Context;
+use host::action::UiMessage;
 use tracing::{info, instrument, trace, Level};
 
 use crate::model::{MainScreenState, Model, PopUpState, RunningState};
@@ -15,6 +16,7 @@ pub fn update(model: &mut Model, message: &UiMessage) -> Option<UiMessage> {
         UiMessage::StateChangeFromSerialPortToMain => move_from_serialport_to_main(model),
         UiMessage::MustSelectOne => must_select_one(model),
         UiMessage::ClosePopUp => close_popup(model),
+        UiMessage::ShowKeyBindings => todo!(),
     }
 }
 
@@ -135,7 +137,7 @@ fn move_from_serialport_to_main(model: &mut Model) -> Option<UiMessage> {
         match state.list_state.selected() {
             Some(idx) => {
                 let selected_port = state.ports.swap_remove(idx).port_name;
-                info!(target:"state_change","{}",selected_port);
+                info!(target:"state_change","from serialport to main with port {}",selected_port);
 
                 model.running_state = RunningState::Main(MainScreenState {
                     port_name: selected_port,
@@ -145,7 +147,7 @@ fn move_from_serialport_to_main(model: &mut Model) -> Option<UiMessage> {
         };
     } else {
         panic!(
-            "Tried to move from serial port to main while being in {}",
+            "Illegal action StateChangeFromSerialPortToMain in state : {}",
             model.running_state
         );
     }
@@ -154,7 +156,6 @@ fn move_from_serialport_to_main(model: &mut Model) -> Option<UiMessage> {
 
 #[instrument(ret(level=Level::TRACE), skip_all, fields(state = model.running_state.to_string()))]
 fn must_select_one(model: &mut Model) -> Option<UiMessage> {
-    trace!("must select one");
     match model.running_state {
         RunningState::SelectSerialPort(_) => {
             model.popup = Some(PopUpState::Message("Select a serial port to continue"))
@@ -173,19 +174,4 @@ fn must_select_one(model: &mut Model) -> Option<UiMessage> {
 fn close_popup(model: &mut Model) -> Option<UiMessage> {
     model.popup = None;
     None
-}
-
-#[derive(Debug)]
-pub enum UiMessage {
-    FetchSerialPorts,
-    /// Quits the application without saving anything or checking with user
-    ForceQuit,
-    SelectionUp,
-    SelectionDown,
-    ClearSelection,
-    SelectLast,
-    SelectFirst,
-    StateChangeFromSerialPortToMain,
-    MustSelectOne,
-    ClosePopUp,
 }
