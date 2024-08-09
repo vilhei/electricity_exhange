@@ -11,6 +11,7 @@
 
 # Above is automatically generated comment by build process.
 
+
 [serialport_keybindings]
 f = "FetchSerialPorts"
 up = "SelectionUp"

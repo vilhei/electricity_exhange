@@ -1,6 +1,6 @@
 use crossterm::event::KeyEvent;
 use host::{
-    action::UiMessage,
+    action::Action,
     centered_rect,
     settings::keybindings::{key_event_to_string, KeyBindings},
 };
@@ -85,7 +85,7 @@ fn render_popup_message(area: Rect, f: &mut Frame, m: &str) {
 
 fn render_keybindings<K>(area: Rect, f: &mut Frame, m: K)
 where
-    K: AsRef<HashMap<KeyEvent, UiMessage>>,
+    K: AsRef<HashMap<KeyEvent, Action>>,
 {
     let list_items: Vec<ListItem> = m
         .as_ref()

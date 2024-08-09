@@ -13,7 +13,7 @@ use strum::VariantNames;
     Copy,
     Clone,
 )]
-pub enum UiMessage {
+pub enum Action {
     #[strum(message = "Lists available serial ports")]
     FetchSerialPorts,
     #[strum(message = "Quits the application without saving anything or checking with user")]
@@ -34,14 +34,14 @@ pub enum UiMessage {
 /// Implemented only to get error message with list of acceptable enum variants
 /// Probably not most efficient solution but does not really matter when
 /// configuration file is realistically deserialized once per program run
-impl<'de> Deserialize<'de> for UiMessage {
+impl<'de> Deserialize<'de> for Action {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
         let s = String::deserialize(deserializer).unwrap();
-        UiMessage::from_str(&s)
-            .map_err(|e| serde::de::Error::unknown_variant(&e.to_string(), UiMessage::VARIANTS))
+        Action::from_str(&s)
+            .map_err(|e| serde::de::Error::unknown_variant(&e.to_string(), Action::VARIANTS))
     }
 }
 

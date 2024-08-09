@@ -3,18 +3,18 @@ use std::collections::HashMap;
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use serde::{Deserialize, Deserializer, Serialize};
 
-use crate::action::UiMessage;
+use crate::action::Action;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct KeyBinding {
-    pub action: UiMessage,
+    pub action: Action,
 }
 
 #[derive(Debug, Serialize)]
-pub struct KeyBindings(pub HashMap<KeyEvent, UiMessage>);
+pub struct KeyBindings(pub HashMap<KeyEvent, Action>);
 
 impl std::ops::Deref for KeyBindings {
-    type Target = HashMap<KeyEvent, UiMessage>;
+    type Target = HashMap<KeyEvent, Action>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -32,7 +32,7 @@ impl<'de> Deserialize<'de> for KeyBindings {
     where
         D: Deserializer<'de>,
     {
-        let parsed_map = HashMap::<String, UiMessage>::deserialize(deserializer)?;
+        let parsed_map = HashMap::<String, Action>::deserialize(deserializer)?;
 
         let keybindings = parsed_map
             .into_iter()
@@ -43,8 +43,8 @@ impl<'de> Deserialize<'de> for KeyBindings {
     }
 }
 
-impl AsRef<HashMap<KeyEvent, UiMessage>> for KeyBindings {
-    fn as_ref(&self) -> &HashMap<KeyEvent, UiMessage> {
+impl AsRef<HashMap<KeyEvent, Action>> for KeyBindings {
+    fn as_ref(&self) -> &HashMap<KeyEvent, Action> {
         self
     }
 }

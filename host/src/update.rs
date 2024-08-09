@@ -1,27 +1,27 @@
 use color_eyre::eyre::Context;
-use host::action::UiMessage;
+use host::action::Action;
 use tracing::{info, instrument, trace, Level};
 
 use crate::model::{MainScreenState, Model, PopUpState, RunningState};
 
-pub fn update(model: &mut Model, message: &UiMessage) -> Option<UiMessage> {
+pub fn update(model: &mut Model, message: &Action) -> Option<Action> {
     match message {
-        UiMessage::FetchSerialPorts => fetch_serial_ports(model),
-        UiMessage::ForceQuit => force_quit(model),
-        UiMessage::SelectionUp => move_selection_up(model),
-        UiMessage::SelectionDown => move_selection_down(model),
-        UiMessage::ClearSelection => clear_selection(model),
-        UiMessage::SelectLast => move_selection_to_last(model),
-        UiMessage::SelectFirst => move_selection_to_first(model),
-        UiMessage::StateChangeFromSerialPortToMain => move_from_serialport_to_main(model),
-        UiMessage::MustSelectOne => must_select_one(model),
-        UiMessage::ClosePopUp => close_popup(model),
-        UiMessage::ShowKeyBindings => show_keybindings(model),
+        Action::FetchSerialPorts => fetch_serial_ports(model),
+        Action::ForceQuit => force_quit(model),
+        Action::SelectionUp => move_selection_up(model),
+        Action::SelectionDown => move_selection_down(model),
+        Action::ClearSelection => clear_selection(model),
+        Action::SelectLast => move_selection_to_last(model),
+        Action::SelectFirst => move_selection_to_first(model),
+        Action::StateChangeFromSerialPortToMain => move_from_serialport_to_main(model),
+        Action::MustSelectOne => must_select_one(model),
+        Action::ClosePopUp => close_popup(model),
+        Action::ShowKeyBindings => show_keybindings(model),
     }
 }
 
 #[instrument(ret(level=Level::TRACE), skip_all, fields(state=model.running_state.to_string(), ports_fetched))]
-fn fetch_serial_ports(model: &mut Model) -> Option<UiMessage> {
+fn fetch_serial_ports(model: &mut Model) -> Option<Action> {
     if let RunningState::SelectSerialPort(s) = &mut model.running_state {
         // trace!("Fetching serial ports");
         // trace!("Fetching serial ports");
@@ -38,19 +38,19 @@ fn fetch_serial_ports(model: &mut Model) -> Option<UiMessage> {
     None
 }
 
-fn force_quit(model: &mut Model) -> Option<UiMessage> {
+fn force_quit(model: &mut Model) -> Option<Action> {
     info!("Quitting");
     model.running_state = RunningState::ForceQuit;
     None
 }
 
 #[instrument(ret(level=Level::TRACE), skip_all, fields(state=model.running_state.to_string()))]
-fn move_selection_up(model: &mut Model) -> Option<UiMessage> {
+fn move_selection_up(model: &mut Model) -> Option<Action> {
     // trace!("selection up");
     match &mut model.running_state {
         RunningState::SelectSerialPort(state) => {
             if let Some(0) = state.list_state.selected() {
-                return Some(UiMessage::SelectLast);
+                return Some(Action::SelectLast);
             }
 
             state.list_state.select_previous();
@@ -66,13 +66,13 @@ fn move_selection_up(model: &mut Model) -> Option<UiMessage> {
 }
 
 #[instrument(ret(level=Level::TRACE), skip_all, fields(state = model.running_state.to_string()))]
-fn move_selection_down(model: &mut Model) -> Option<UiMessage> {
+fn move_selection_down(model: &mut Model) -> Option<Action> {
     // trace!("selection down");
     match &mut model.running_state {
         RunningState::SelectSerialPort(state) => {
             if let Some(idx) = state.list_state.selected() {
                 if idx == state.ports.len() - 1 {
-                    return Some(UiMessage::SelectFirst);
+                    return Some(Action::SelectFirst);
                 }
             }
             state.list_state.select_next();
@@ -88,7 +88,7 @@ fn move_selection_down(model: &mut Model) -> Option<UiMessage> {
 }
 
 #[instrument(ret(level=Level::TRACE), skip_all, fields(state = model.running_state.to_string()))]
-fn move_selection_to_last(model: &mut Model) -> Option<UiMessage> {
+fn move_selection_to_last(model: &mut Model) -> Option<Action> {
     info!("selection last");
     match &mut model.running_state {
         RunningState::SelectSerialPort(state) => state.list_state.select_last(),
@@ -103,7 +103,7 @@ fn move_selection_to_last(model: &mut Model) -> Option<UiMessage> {
 }
 
 #[instrument(ret(level=Level::TRACE), skip_all, fields(state = model.running_state.to_string()))]
-fn move_selection_to_first(model: &mut Model) -> Option<UiMessage> {
+fn move_selection_to_first(model: &mut Model) -> Option<Action> {
     trace!("selection first");
     match &mut model.running_state {
         RunningState::SelectSerialPort(state) => state.list_state.select_first(),
@@ -118,7 +118,7 @@ fn move_selection_to_first(model: &mut Model) -> Option<UiMessage> {
 }
 
 #[instrument(ret(level=Level::TRACE), skip_all, fields(state = model.running_state.to_string()))]
-fn clear_selection(model: &mut Model) -> Option<UiMessage> {
+fn clear_selection(model: &mut Model) -> Option<Action> {
     trace!("clear selection");
     match &mut model.running_state {
         RunningState::SelectSerialPort(state) => state.list_state.select(None),
@@ -132,7 +132,7 @@ fn clear_selection(model: &mut Model) -> Option<UiMessage> {
 }
 
 #[instrument(ret(level=Level::TRACE), skip_all, fields(state = model.running_state.to_string()))]
-fn move_from_serialport_to_main(model: &mut Model) -> Option<UiMessage> {
+fn move_from_serialport_to_main(model: &mut Model) -> Option<Action> {
     if let RunningState::SelectSerialPort(state) = &mut model.running_state {
         match state.list_state.selected() {
             Some(idx) => {
@@ -143,7 +143,7 @@ fn move_from_serialport_to_main(model: &mut Model) -> Option<UiMessage> {
                     port_name: selected_port,
                 });
             }
-            None => return Some(UiMessage::MustSelectOne),
+            None => return Some(Action::MustSelectOne),
         };
     } else {
         panic!(
@@ -155,7 +155,7 @@ fn move_from_serialport_to_main(model: &mut Model) -> Option<UiMessage> {
 }
 
 #[instrument(ret(level=Level::TRACE), skip_all, fields(state = model.running_state.to_string()))]
-fn must_select_one(model: &mut Model) -> Option<UiMessage> {
+fn must_select_one(model: &mut Model) -> Option<Action> {
     match model.running_state {
         RunningState::SelectSerialPort(_) => {
             model.popup = Some(PopUpState::Message("Select a serial port to continue"))
@@ -170,13 +170,13 @@ fn must_select_one(model: &mut Model) -> Option<UiMessage> {
     None
 }
 
-fn show_keybindings(model: &mut Model) -> Option<UiMessage> {
+fn show_keybindings(model: &mut Model) -> Option<Action> {
     model.popup = Some(PopUpState::ShowKeyBindings);
     None
 }
 
 #[instrument(ret(level=Level::TRACE), skip_all, fields(state = model.running_state.to_string()))]
-fn close_popup(model: &mut Model) -> Option<UiMessage> {
+fn close_popup(model: &mut Model) -> Option<Action> {
     model.popup = None;
     None
 }

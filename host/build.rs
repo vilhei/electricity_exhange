@@ -4,21 +4,21 @@ use std::{
     str::FromStr,
 };
 
-use action::UiMessage;
+use action::Action;
 use strum::{EnumMessage, VariantNames};
 
 #[path = "src/action.rs"]
 mod action;
 
-impl UiMessage {
-    /// Returns true if uimessage can be binded to user desired keybind
+impl Action {
+    /// Returns true if Action can be binded to user desired keybind
     fn is_customizable(&self) -> bool {
         #[allow(clippy::match_like_matches_macro)]
         match *self {
-            UiMessage::SelectLast => false,
-            UiMessage::SelectFirst => false,
-            UiMessage::ClosePopUp => false,
-            UiMessage::MustSelectOne => false,
+            Action::SelectLast => false,
+            Action::SelectFirst => false,
+            Action::ClosePopUp => false,
+            Action::MustSelectOne => false,
             _ => true,
         }
     }
@@ -31,13 +31,13 @@ const GENERATED_END: &str = "\n# Above is automatically generated comment by bui
 const SETTINGS_FILE: &str = "./configs/settings.toml";
 
 fn main() {
-    // println!("cargo::rerun-if-changed=src/action.rs");
+    println!("cargo::rerun-if-changed=src/action.rs");
     let mut msg = String::from(ACTION_INFO);
 
-    for variant_name in action::UiMessage::VARIANTS {
+    for variant_name in action::Action::VARIANTS {
         let mut s = String::from("# - ");
         s.push_str(variant_name);
-        let variant = action::UiMessage::from_str(variant_name).unwrap();
+        let variant = action::Action::from_str(variant_name).unwrap();
         if !variant.is_customizable() {
             continue;
         }
@@ -66,7 +66,7 @@ fn main() {
     File::read_to_string(&mut file, &mut file_content).unwrap();
     file.set_len(0).unwrap();
     file.rewind().unwrap();
-    println!("file_content: {}", file_content);
+    // println!("file_content: {}", file_content);
 
     let end_idx = match file_content.find(GENERATED_END) {
         Some(idx) => idx + GENERATED_END.len(),

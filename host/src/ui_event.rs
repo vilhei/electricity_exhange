@@ -1,12 +1,12 @@
 use std::time::Duration;
 
 use color_eyre::{eyre::Ok, Result};
-use host::action::UiMessage;
-use ratatui::crossterm::event::{self, KeyCode, KeyEvent, KeyModifiers};
+use host::action::Action;
+use ratatui::crossterm::event::{self, KeyCode, KeyEvent};
 
 use crate::model::Model;
 
-pub fn handle_event(model: &Model) -> Result<Option<UiMessage>> {
+pub fn handle_event(model: &Model) -> Result<Option<Action>> {
     if event::poll(Duration::from_millis(50))? {
         match &event::read()? {
             event::Event::Key(k) if k.kind == event::KeyEventKind::Press => {
@@ -24,69 +24,44 @@ pub fn handle_event(model: &Model) -> Result<Option<UiMessage>> {
     }
 }
 
-fn handle_key_event(key_event: &KeyEvent, model: &Model) -> Result<Option<UiMessage>> {
-    // Handle ctrl+c force quite before other key events
-    if model
-        .get_keybinding()
-        .get(key_event)
-        .is_some_and(|a| matches!(a, UiMessage::ForceQuit))
-    {
-        return Ok(Some(UiMessage::ForceQuit));
+fn handle_key_event(key_event: &KeyEvent, model: &Model) -> Result<Option<Action>> {
+    let possible_action = model.get_keybinding().get(key_event);
+    // Handle force quit before other key events
+    if possible_action.is_some_and(|a| matches!(a, Action::ForceQuit)) {
+        return Ok(Some(Action::ForceQuit));
     }
 
     // Force user to close possible popup before continuing with other actions
     if model.popup.is_some() {
         match key_event.code {
-            KeyCode::Esc => return Ok(Some(UiMessage::ClosePopUp)),
+            KeyCode::Esc => return Ok(Some(Action::ClosePopUp)),
             _ => return Ok(None),
         }
     }
-
-    match model.running_state {
-        crate::model::RunningState::SelectSerialPort(_) => {
-            handle_select_serial_port_key_event(key_event, model)
-        }
-        crate::model::RunningState::Main(_) => todo!(),
-        crate::model::RunningState::Configure(_) => todo!(),
-        crate::model::RunningState::GetInformation(_) => todo!(),
-        crate::model::RunningState::Quit(_) => todo!(),
-        crate::model::RunningState::ForceQuit => todo!(),
-    }
+    Ok(possible_action.copied())
 }
 
+#[allow(unused)]
 pub fn handle_select_serial_port_key_event(
     key_event: &KeyEvent,
     model: &Model,
-) -> Result<Option<UiMessage>> {
-    Ok(model
-        .settings
-        .serialport_keybindings
-        .get(key_event)
-        .copied())
-
-    // match key_event.code {
-    //     KeyCode::Char('f') => Ok(Some(UiMessage::FetchSerialPorts)),
-    //     KeyCode::Up => Ok(Some(UiMessage::SelectionUp)),
-    //     KeyCode::Down => Ok(Some(UiMessage::SelectionDown)),
-    //     KeyCode::Esc => Ok(Some(UiMessage::ClearSelection)),
-    //     KeyCode::Enter => Ok(Some(UiMessage::StateChangeFromSerialPortToMain)),
-    //     _ => Ok(None),
-    // }
+) -> Result<Option<Action>> {
+    Ok(model.get_keybinding().get(key_event).copied())
 }
 #[allow(unused)]
-pub fn handle_main_key_event(key_event: &KeyEvent) -> Result<Option<UiMessage>> {
+pub fn handle_main_key_event(key_event: &KeyEvent) -> Result<Option<Action>> {
     todo!()
 }
 
 #[allow(unused)]
-pub fn handle_configure_key_event(key_event: &KeyEvent) -> Result<Option<UiMessage>> {
+pub fn handle_configure_key_event(key_event: &KeyEvent) -> Result<Option<Action>> {
     todo!()
 }
 #[allow(unused)]
-pub fn handle_get_information_key_event(key_event: &KeyEvent) -> Result<Option<UiMessage>> {
+pub fn handle_get_information_key_event(key_event: &KeyEvent) -> Result<Option<Action>> {
     todo!()
 }
 #[allow(unused)]
-pub fn handle_quit_key_event(key_event: &KeyEvent) -> Result<Option<UiMessage>> {
+pub fn handle_quit_key_event(key_event: &KeyEvent) -> Result<Option<Action>> {
     todo!()
 }
