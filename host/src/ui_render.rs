@@ -1,27 +1,25 @@
+use crate::model::{
+    ConfigureScreenState, GetInformationScreenState, MainScreenState, Model, PopUpState,
+    QuitScreenState, RunningState, SerialPortScreenState,
+};
 use crossterm::event::KeyEvent;
 use host::{
-    action::Action,
-    centered_rect,
-    settings::keybindings::{key_event_to_string, KeyBindings},
+    action::Action, centered_rect, list_block, settings::keybindings::key_event_to_string,
+    title_block,
 };
 use ratatui::{
     prelude::*,
     widgets::{block::Title, Block, Borders, Clear, List, ListItem, Paragraph, Wrap},
 };
 use serialport::SerialPortInfo;
-use std::{borrow::BorrowMut, collections::HashMap};
-use strum::EnumMessage;
+use std::collections::HashMap;
+use strum::VariantNames;
 use tui_logger::{TuiLoggerLevelOutput, TuiLoggerWidget};
-
-use crate::model::{
-    ConfigureScreenState, GetInformationScreenState, MainScreenState, Model, PopUpState,
-    QuitScreenState, RunningState, SerialPortScreenState,
-};
 
 pub fn view(model: &mut Model, f: &mut Frame) {
     let area = render_common_screen(f);
 
-    match model.running_state.borrow_mut() {
+    match &mut model.running_state {
         RunningState::SelectSerialPort(state) => render_select_serialport_screen(state, f, &area),
         RunningState::Main(state) => render_main_screen(state, f, &area),
         RunningState::Configure(state) => render_configure_screen(state, f),
@@ -39,9 +37,24 @@ fn render_common_screen(f: &mut Frame) -> Rect {
     let chunks =
         Layout::vertical([Constraint::Percentage(75), Constraint::Fill(1)]).split(f.size());
 
+    let bottom_areas =
+        Layout::horizontal([Constraint::Percentage(70), Constraint::Fill(1)]).split(chunks[1]);
+
     let log_widget = construct_tui_logger_widget();
 
-    f.render_widget(log_widget, chunks[1]);
+    f.render_widget(log_widget, bottom_areas[0]);
+
+    let block = Block::bordered()
+        .title("Help")
+        .title_alignment(Alignment::Center)
+        .style(Style::default());
+
+    let keybinding_help = Line::from(Span::raw(format!("{:<10} | show keybindings", "k")));
+    let help_text = Text::from_iter([keybinding_help]);
+    let help_text = Paragraph::new(help_text).block(block);
+
+    f.render_widget(help_text, bottom_areas[1]);
+
     chunks[0]
 }
 
@@ -71,13 +84,19 @@ fn render_popup(model: &Model, f: &mut Frame, target_area: Option<Rect>) {
 }
 
 fn render_popup_message(area: Rect, f: &mut Frame, m: &str) {
-    let msg_text = Line::from(Span::styled(m, Style::default()).fg(Color::White));
+    let msg_lines = m
+        .lines()
+        .map(|line| Line::from(Span::styled(line, Style::default()).fg(Color::White)));
+
+    let mut msg_text = Text::from_iter(msg_lines);
     let exit_text = Line::from(Span::styled(
         "Press [Esc] to close the popup",
         Style::default(),
     ));
-    let text_content = Text::from_iter([msg_text, exit_text]);
-    let msg = Paragraph::new(text_content)
+
+    msg_text.push_line(exit_text);
+
+    let msg = Paragraph::new(msg_text)
         .wrap(Wrap { trim: true })
         .alignment(Alignment::Center);
     f.render_widget(msg, area);
@@ -100,16 +119,6 @@ where
 
     let list = List::new(list_items);
     f.render_widget(list, area);
-    // let msg_text = Line::from(Span::styled(m, Style::default()).fg(Color::White));
-    // let exit_text = Line::from(Span::styled(
-    //     "Press [Esc] to close the popup",
-    //     Style::default(),
-    // ));
-    // let text_content = Text::from_iter([msg_text, exit_text]);
-    // let msg = Paragraph::new(text_content)
-    //     .wrap(Wrap { trim: true })
-    //     .alignment(Alignment::Center);
-    // f.render_widget(msg, area);
 }
 
 fn render_select_serialport_screen(state: &mut SerialPortScreenState, f: &mut Frame, area: &Rect) {
@@ -118,12 +127,6 @@ fn render_select_serialport_screen(state: &mut SerialPortScreenState, f: &mut Fr
         .constraints([Constraint::Length(3), Constraint::Fill(1)])
         .split(*area);
 
-    let title_block = Block::default()
-        .borders(Borders::ALL)
-        .style(Style::default())
-        // .bg(Color::Red)
-        .border_type(ratatui::widgets::BorderType::Rounded);
-
     let title = Paragraph::new(Span::styled(
         "Select port connected to esp32c3",
         Style::default()
@@ -131,13 +134,11 @@ fn render_select_serialport_screen(state: &mut SerialPortScreenState, f: &mut Fr
             .add_modifier(Modifier::BOLD),
     ))
     .alignment(Alignment::Center)
-    .block(title_block);
+    .block(title_block!());
 
     f.render_widget(title, chunks[0]);
 
     let list_items: Vec<ListItem> = state.ports.iter().map(serial_port_to_list_item).collect();
-
-    let list_block = Block::default().borders(Borders::ALL);
 
     let list = List::new(list_items)
         .highlight_style(
@@ -146,7 +147,7 @@ fn render_select_serialport_screen(state: &mut SerialPortScreenState, f: &mut Fr
                 .add_modifier(Modifier::BOLD),
         )
         .highlight_symbol("> ")
-        .block(list_block);
+        .block(list_block!());
     // f.render_widget(list, chunks[1]);
     f.render_stateful_widget(list, chunks[1], &mut state.list_state);
 }
@@ -169,17 +170,11 @@ fn serial_port_to_list_item<'a>(p: &SerialPortInfo) -> ListItem<'a> {
     }
 }
 
-fn render_main_screen(state: &MainScreenState, f: &mut Frame, area: &Rect) {
+fn render_main_screen(state: &mut MainScreenState, f: &mut Frame, area: &Rect) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([Constraint::Length(3), Constraint::Fill(1)])
         .split(*area);
-
-    let title_block = Block::default()
-        .borders(Borders::ALL)
-        .style(Style::default())
-        // .bg(Color::Red)
-        .border_type(ratatui::widgets::BorderType::Rounded);
 
     let title = Paragraph::new(Span::styled(
         format!("Main View - selected port : {}", state.port_name),
@@ -188,8 +183,23 @@ fn render_main_screen(state: &MainScreenState, f: &mut Frame, area: &Rect) {
             .add_modifier(Modifier::BOLD),
     ))
     .alignment(Alignment::Center)
-    .block(title_block);
+    .block(title_block!());
     f.render_widget(title, chunks[0]);
+
+    let list_items: Vec<ListItem> = shared::Message::VARIANTS
+        .iter()
+        .map(|v| ListItem::new(Line::from(Span::styled(*v, Style::default()))))
+        .collect();
+
+    let list = List::new(list_items)
+        .highlight_style(
+            Style::default()
+                .fg(Color::LightYellow)
+                .add_modifier(Modifier::BOLD),
+        )
+        .highlight_symbol("> ")
+        .block(list_block!());
+    f.render_stateful_widget(list, chunks[1], &mut state.list_state);
 }
 
 #[allow(unused)]

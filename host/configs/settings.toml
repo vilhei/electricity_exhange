@@ -20,3 +20,11 @@ enter = "StateChangeFromSerialPortToMain"
 esc = "ClearSelection"
 k = "ShowKeyBindings"
 ctrl-c = "ForceQuit"
+
+[main_keybindings]
+up = "SelectionUp"
+down = "SelectionDown"
+enter = "StateChangeFromSerialPortToMain"
+esc = "ClearSelection"
+k = "ShowKeyBindings"
+ctrl-c = "ForceQuit"

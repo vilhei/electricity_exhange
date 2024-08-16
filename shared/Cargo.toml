@@ -17,4 +17,5 @@ postcard = { version = "1.0.8", default-features = false, features = [
 
 serde = { version = "1.0.203", default-features = false, features = ["derive"] }
 strum = { version = "0.26.3", default-features = false }
+
 strum_macros = "0.26.4"

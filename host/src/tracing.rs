@@ -30,7 +30,7 @@ pub fn initialize_logging() -> Result<()> {
         .event_format(format)
         .with_writer(f)
         .with_ansi(false)
-        .with_filter(LevelFilter::TRACE);
+        .with_filter(LevelFilter::INFO);
     let tui_layer = TuiTracingSubscriberLayer.with_filter(LevelFilter::TRACE);
 
     tracing_subscriber::registry()

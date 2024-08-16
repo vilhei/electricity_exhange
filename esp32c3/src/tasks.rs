@@ -19,9 +19,13 @@ pub async fn broker(
 ) {
     loop {
         let message = broker_receiver.receive().await;
+        display_sender.send("Serial message received".into()).await;
 
         match message {
-            Message::Wifi(_) => serial_writer_sender.send(Response::Ok).await,
+            Message::Wifi(_) => {
+                serial_writer_sender.send(Response::Ok).await;
+                display_sender.send("Wifi info got".into()).await;
+            }
             Message::FingridApiKey(key) => {
                 let mut nvs_guard = nvs_storage.lock().await;
                 nvs_guard

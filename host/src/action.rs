@@ -13,6 +13,7 @@ use strum::VariantNames;
     Copy,
     Clone,
 )]
+
 pub enum Action {
     #[strum(message = "Lists available serial ports")]
     FetchSerialPorts,
@@ -29,6 +30,7 @@ pub enum Action {
     ClosePopUp,
     #[strum(message = "Show keybindings, these can be configured in the settings.toml file")]
     ShowKeyBindings,
+    SerialPortConnectionFail,
 }
 
 /// Implemented only to get error message with list of acceptable enum variants

@@ -2,6 +2,28 @@
     "version": "0.2.0",
     "configurations": [
         {
+        "type": "probe-rs-debug",
+        "request": "launch",
+        "name": "probe-rs Debug",
+        // "probe": "303a:1001", //!MODIFY (or remove)
+        "cwd": "${workspaceFolder}",
+        "preLaunchTask": "cargo build",
+        "connectUnderReset": false,
+        "chip": "esp32c3",
+        "flashingConfig": {
+            "flashingEnabled": true,
+            // "resetAfterFlashing": true,
+            "haltAfterReset": false,
+        },
+        "coreConfigs": [
+            {
+                "coreIndex": 0,
+                "programBinary": "target/riscv32imc-unknown-none-elf/debug/electricity_exhange",
+                "rttEnabled": true,
+            }
+        ]
+    },
+        {
             "type": "probe-rs-debug",
             "request": "launch",
             "name": "Launch",

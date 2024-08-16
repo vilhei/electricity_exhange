@@ -1,5 +1,4 @@
-use core::str::FromStr;
-
+use core::{fmt::Write, str::FromStr};
 use embassy_executor::Spawner;
 use embassy_sync::blocking_mutex::raw::{CriticalSectionRawMutex, NoopRawMutex};
 use embassy_sync::channel::{self, Sender};
@@ -14,6 +13,8 @@ use shared::{
     RESPONSE_SIZE,
 };
 
+/// **TODO** Try to read multiple bytes at a time instead of one at a time?
+///
 /// Constructs Uart instance and starts serial read and write tasks
 /// When a full [Message] has been received in [read_serial] it is sent to `broker_sender` channel
 /// When `writer_receiver` receives [Response] it will encode and write it to serial
@@ -29,23 +30,15 @@ pub async fn setup(
     writer_receiver: channel::Receiver<'static, NoopRawMutex, Response, 10>,
     display_sender: Sender<'static, CriticalSectionRawMutex, DisplayUpdate, 10>,
 ) -> Result<(), SerialError> {
-    display_sender
-        .send(DisplayUpdate::StatusUpdate(
-            String::from_str("Serial init").unwrap(),
-        ))
-        .await;
+    display_sender.send("Serial init".into()).await;
 
     let uart = Uart::new_async(uart, clocks);
     let (tx, rx) = uart.split();
 
-    spawner.spawn(read_serial(rx, broker_sender))?;
+    spawner.spawn(read_serial(rx, broker_sender, display_sender))?;
     spawner.spawn(write_serial(tx, writer_receiver))?;
 
-    display_sender
-        .send(DisplayUpdate::StatusUpdate(
-            String::from_str("Serial init done").unwrap(),
-        ))
-        .await;
+    display_sender.send("Serial init done".into()).await;
 
     Ok(())
 }
@@ -54,6 +47,7 @@ pub async fn setup(
 async fn read_serial(
     mut rx: UartRx<'static, UART0, Async>,
     broker_sender: channel::Sender<'static, NoopRawMutex, Message, 10>,
+    display_sender: Sender<'static, CriticalSectionRawMutex, DisplayUpdate, 10>,
 ) {
     let mut message = Vec::<u8, MESSAGE_SIZE>::new();
     let mut buf = [0; 1];
@@ -61,6 +55,9 @@ async fn read_serial(
     loop {
         let _ = rx.read_exact(&mut buf).await;
         if message.is_full() {
+            display_sender
+                .send("Message buffer is full - panicking".into())
+                .await;
             panic!("Message buffer is full")
         }
         message.push(buf[0]).unwrap();

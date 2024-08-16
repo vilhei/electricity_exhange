@@ -41,11 +41,7 @@ pub async fn connect(
     display_sender: Sender<'static, CriticalSectionRawMutex, DisplayUpdate, 10>,
     nvs_storage: &'static Mutex<NoopRawMutex, NonVolatileStorage>,
 ) -> Result<&'static Stack<WifiDevice<'static, WifiStaDevice>>, Error> {
-    display_sender
-        .send(DisplayUpdate::StatusUpdate(
-            String::from_str("started Wifi init").unwrap(),
-        ))
-        .await;
+    display_sender.send("started Wifi init".into()).await;
 
     let seed = generate_rand_u64(&mut rng);
 
@@ -88,8 +84,9 @@ pub async fn connect(
 
         // Todo remove showing wifi credentials in final build
         let mut msg = String::<64>::new();
-        write!(msg, "{wifi_ssid}\n{wifi_password}").unwrap();
-        display_sender.send(DisplayUpdate::StatusUpdate(msg)).await;
+
+        write!(msg, "{wifi_ssid}\n************",).unwrap();
+        display_sender.send(msg.as_str().into()).await;
 
         spawner.must_spawn(connection(controller, wifi_password, wifi_ssid));
     }
@@ -103,11 +100,7 @@ pub async fn connect(
     while stack.config_v4().is_none() {
         Timer::after(Duration::from_millis(500)).await;
     }
-    display_sender
-        .send(DisplayUpdate::StatusUpdate(
-            String::from_str("Wifi init done").unwrap(),
-        ))
-        .await;
+    display_sender.send("Wifi init done".into()).await;
 
     Ok(stack)
 }

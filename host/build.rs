@@ -19,6 +19,7 @@ impl Action {
             Action::SelectFirst => false,
             Action::ClosePopUp => false,
             Action::MustSelectOne => false,
+            Action::SerialPortConnectionFail => false,
             _ => true,
         }
     }
@@ -31,7 +32,7 @@ const GENERATED_END: &str = "\n# Above is automatically generated comment by bui
 const SETTINGS_FILE: &str = "./configs/settings.toml";
 
 fn main() {
-    println!("cargo::rerun-if-changed=src/action.rs");
+    println!("cargo::rerun-if-changed=./src/action.rs");
     let mut msg = String::from(ACTION_INFO);
 
     for variant_name in action::Action::VARIANTS {

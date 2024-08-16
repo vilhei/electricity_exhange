@@ -7,12 +7,13 @@ use tracing::{info, instrument, Level};
 #[derive(Debug, Deserialize)]
 pub struct Settings {
     pub serialport_keybindings: KeyBindings,
+    pub main_keybindings: KeyBindings,
 }
 
 impl Settings {
     #[instrument(ret(level=Level::TRACE))]
     pub fn new() -> Self {
-        info!("Creating new settings object");
+        info!("Loading settings");
         let config_path = "./configs/settings.toml";
         let file = config::File::with_name(config_path);
         let settings = config::Config::builder().add_source(file).build().unwrap();

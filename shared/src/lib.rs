@@ -1,7 +1,7 @@
 #![cfg_attr(not(test), no_std)]
 #![feature(type_alias_impl_trait)]
 
-use core::mem::size_of;
+use core::{mem::size_of, str::FromStr};
 
 use corncobs::max_encoded_len;
 use embedded_graphics::pixelcolor::Rgb565;
@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 pub const MESSAGE_SIZE: usize = max_encoded_len(size_of::<Message>() + size_of::<u32>());
 pub const RESPONSE_SIZE: usize = max_encoded_len(size_of::<Response>() + size_of::<u32>());
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, strum_macros::VariantNames, strum_macros::EnumCount)]
 #[repr(C)]
 pub enum Message {
     Wifi(WifiInfo),
@@ -77,6 +77,15 @@ pub enum DisplayUpdate {
     StatusUpdate(String<64>),
     Fill(Rgb565),
     SetBrightness(DisplayBrightness),
+}
+
+impl From<&str> for DisplayUpdate {
+    fn from(value: &str) -> Self {
+        Self::StatusUpdate(
+            String::from_str(value)
+                .expect("Could not form DisplayUpdate because of on ill formed str"),
+        )
+    }
 }
 
 impl From<DisplayMessage> for DisplayUpdate {

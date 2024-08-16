@@ -45,7 +45,7 @@ impl<'de> Deserialize<'de> for KeyBindings {
 
 impl AsRef<HashMap<KeyEvent, Action>> for KeyBindings {
     fn as_ref(&self) -> &HashMap<KeyEvent, Action> {
-        self
+        &self.0
     }
 }
 

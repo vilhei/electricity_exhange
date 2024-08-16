@@ -1,15 +1,17 @@
+use std::io::{Read, Write};
+
 use host::settings::{keybindings::KeyBindings, Settings};
 use ratatui::widgets::ListState;
-use serialport::SerialPortInfo;
+use serialport::{SerialPort, SerialPortInfo};
 
-#[derive(Debug)]
-pub struct Model<'a> {
+// #[derive(Debug)]
+pub struct Model {
     pub running_state: RunningState,
-    pub popup: Option<PopUpState<'a>>,
+    pub popup: Option<PopUpState>,
     pub settings: Settings,
 }
 
-impl Model<'_> {
+impl Model {
     pub fn new() -> Self {
         Self {
             running_state: RunningState::SelectSerialPort(Default::default()),
@@ -21,7 +23,7 @@ impl Model<'_> {
     pub fn get_keybinding(&self) -> &KeyBindings {
         match self.running_state {
             RunningState::SelectSerialPort(_) => &self.settings.serialport_keybindings,
-            RunningState::Main(_) => todo!(),
+            RunningState::Main(_) => &self.settings.main_keybindings,
             RunningState::Configure(_) => todo!(),
             RunningState::GetInformation(_) => todo!(),
             RunningState::Quit(_) => todo!(),
@@ -31,7 +33,7 @@ impl Model<'_> {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, PartialEq, strum::Display)]
+#[derive(strum::Display)]
 pub enum RunningState {
     SelectSerialPort(SerialPortScreenState),
     Main(MainScreenState),
@@ -64,9 +66,23 @@ impl Default for SerialPortScreenState {
     }
 }
 
-#[derive(Debug, PartialEq, Default)]
+// #[derive(Debug)]
 pub struct MainScreenState {
     pub port_name: String,
+    pub reader: Box<dyn Read>,
+    pub writer: Box<dyn Write>,
+    pub list_state: ListState,
+}
+
+impl MainScreenState {
+    pub fn with_serial_port(serial_port: Box<dyn SerialPort>) -> Self {
+        Self {
+            port_name: serial_port.name().unwrap(),
+            reader: serial_port.try_clone().unwrap(),
+            writer: serial_port,
+            list_state: ListState::default(),
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Default)]
@@ -79,8 +95,8 @@ pub struct GetInformationScreenState {}
 pub struct QuitScreenState {}
 
 #[derive(Debug)]
-pub enum PopUpState<'a> {
-    Message(&'a str),
+pub enum PopUpState {
+    Message(String),
     ShowKeyBindings,
 }
 
@@ -94,8 +110,8 @@ mod tests {
         let e1 = RunningState::Configure(Default::default());
         let e2 = RunningState::GetInformation(Default::default());
         let e3 = RunningState::ForceQuit;
-        let e4 = RunningState::Main(Default::default());
+        // let= RunningState::Main(Default::default());
 
-        println!("{e}\n{e1}\n{e2}\n{e3}\n{e4}");
+        println!("{e}\n{e1}\n{e2}\n{e3}\n");
     }
 }

@@ -135,11 +135,7 @@ async fn main(spawner: Spawner) {
     .await
     .unwrap();
 
-    display_sender
-        .send(DisplayUpdate::StatusUpdate(
-            String::from_str("Device init done!").unwrap(),
-        ))
-        .await;
+    display_sender.send("Device init done!".into()).await;
 
     // loop {
 

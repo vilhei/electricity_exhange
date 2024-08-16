@@ -1,5 +1,6 @@
 pub mod action;
 pub mod settings;
+pub mod styles;
 
 use std::io::stdout;
 
