@@ -1,11 +1,14 @@
+use chrono::{Datelike, Timelike};
+use core::fmt::{Debug, Write};
 use display_interface_spi::SPIInterface;
 use embassy_executor::SendSpawner;
 use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, channel::Receiver};
 use embassy_time::Delay;
 use embedded_graphics::{
     draw_target::DrawTarget,
-    geometry::Dimensions,
+    geometry::{Dimensions, Point},
     pixelcolor::{Rgb565, RgbColor},
+    primitives::Rectangle,
 };
 use embedded_hal_bus::spi::{ExclusiveDevice, NoDelay};
 use esp_hal::{
@@ -13,6 +16,7 @@ use esp_hal::{
     peripherals::SPI2,
     spi::{master::Spi, FullDuplexMode},
 };
+use heapless::String;
 use mipidsi::{
     dcs::{SetDisplayOff, SetDisplayOn},
     models::ST7789,
@@ -20,9 +24,15 @@ use mipidsi::{
     Display,
 };
 use shared::DisplayUpdate;
-use u8g2_fonts::types::{FontColor, HorizontalAlignment, VerticalPosition};
+use u8g2_fonts::{
+    types::{FontColor, HorizontalAlignment, VerticalPosition},
+    Content, FontRenderer,
+};
 
-use crate::styles::FONT1_NORMAL;
+use crate::{
+    datetime::month_name_short,
+    styles::{FONT1_NORMAL, FONT1_SMALL},
+};
 
 type ST7789Display = Display<DisplaySpiInterface, ST7789, Output<'static, Gpio8>>;
 
@@ -103,6 +113,75 @@ async fn update_display(
             DisplayUpdate::SetBrightness(b) => {
                 dcs.write_command(b).unwrap();
             }
+            DisplayUpdate::SetTime(t) => update_datetime(&mut display, t),
         }
     }
+}
+
+fn update_datetime<D, E>(display: &mut D, t: u64)
+where
+    D: DrawTarget<Color = Rgb565, Error = E>,
+    E: Debug,
+{
+    let date = chrono::DateTime::from_timestamp_millis(t as i64 * 1000).unwrap(); // u64 to i64 could overflow
+    let mut content = String::<64>::new();
+    let month = month_name_short(date.month());
+    write!(
+        content,
+        "{month} {:02}\n{:02}:{:02}:{:02}",
+        date.day(),
+        date.hour(),
+        date.minute(),
+        date.second()
+    )
+    .expect("Check buffer size");
+
+    clear_and_render_aligned(
+        &FONT1_SMALL,
+        content.as_str(),
+        &display.bounding_box().top_left,
+        VerticalPosition::Top,
+        HorizontalAlignment::Left,
+        FontColor::Transparent(Rgb565::BLACK),
+        display,
+    )
+    .unwrap();
+}
+
+/// Clears the area before rendering content on it
+fn clear_and_render_aligned<D, E, C>(
+    font: &FontRenderer,
+    content: C,
+    position: &Point,
+    vertical_pos: VerticalPosition,
+    horizontal_align: HorizontalAlignment,
+    color: FontColor<D::Color>,
+    display: &mut D,
+) -> Result<Option<Rectangle>, u8g2_fonts::Error<D::Error>>
+where
+    D: DrawTarget<Color = Rgb565, Error = E>,
+    E: Debug,
+    C: Content + Clone,
+{
+    let area = font
+        .get_rendered_dimensions_aligned(
+            content.clone(),
+            *position,
+            vertical_pos,
+            horizontal_align,
+        )?
+        .unwrap();
+
+    display
+        .fill_solid(&area, Rgb565::WHITE)
+        .map_err(|e| u8g2_fonts::Error::DisplayError(e))?;
+
+    font.render_aligned(
+        content,
+        *position,
+        VerticalPosition::Top,
+        HorizontalAlignment::Left,
+        color,
+        display,
+    )
 }

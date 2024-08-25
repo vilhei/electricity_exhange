@@ -3,11 +3,8 @@
 #![no_main]
 #![feature(type_alias_impl_trait)]
 
-use core::str::FromStr;
-
 use display_interface_spi::SPIInterface;
 use electricity_exhange::{
-    client::Client,
     storage::NonVolatileStorage,
     tasks::broker,
     wifi::{self, WifiPeripherals},
@@ -31,24 +28,19 @@ use esp_hal::{
     timer::timg::TimerGroup,
 };
 use esp_hal_embassy::InterruptExecutor;
-// use esp_println::println;
-use heapless::String;
 use shared::{DisplayUpdate, Message, Response};
-use static_cell::{ConstStaticCell, StaticCell};
+use static_cell::StaticCell;
 
 use esp_backtrace as _; // Panic behaviour
 
 /// Send incoming messages to this channel for broker task to handle
-static BROKER_CHANNEL: ConstStaticCell<Channel<NoopRawMutex, Message, 10>> =
-    ConstStaticCell::new(Channel::new());
+static BROKER_CHANNEL: Channel<CriticalSectionRawMutex, Message, 10> = Channel::new();
 
 /// Send responses to this channel for the serial_write task to handle
-static WRITER_CHANNEL: ConstStaticCell<Channel<NoopRawMutex, Response, 10>> =
-    ConstStaticCell::new(Channel::new());
+static WRITER_CHANNEL: Channel<CriticalSectionRawMutex, Response, 10> = Channel::new();
 
 /// Send updates to display
-static DISPLAY_CHANNEL: ConstStaticCell<Channel<CriticalSectionRawMutex, DisplayUpdate, 10>> =
-    ConstStaticCell::new(Channel::new());
+static DISPLAY_CHANNEL: Channel<CriticalSectionRawMutex, DisplayUpdate, 10> = Channel::new();
 
 /// Can be used to access non-volatile storage
 static NVS_STORAGE: StaticCell<Mutex<NoopRawMutex, NonVolatileStorage>> = StaticCell::new();
@@ -86,7 +78,7 @@ async fn main(spawner: Spawner) {
 
     let rst = Output::new(io.pins.gpio8, Level::High);
 
-    let display_channel = DISPLAY_CHANNEL.take();
+    // let display_channel = DISPLAY_CHANNEL.take();
 
     let high_prio_executor = HIGH_PRIO_EXECUTOR.init(InterruptExecutor::new(
         system.software_interrupt_control.software_interrupt2,
@@ -94,11 +86,11 @@ async fn main(spawner: Spawner) {
 
     let high_prio_spawner = high_prio_executor.start(Priority::Priority3);
 
-    electricity_exhange::display::setup(&high_prio_spawner, di, rst, display_channel.receiver());
+    electricity_exhange::display::setup(&high_prio_spawner, di, rst, DISPLAY_CHANNEL.receiver());
 
     let rng = Rng::new(peripherals.RNG);
 
-    let display_sender = display_channel.sender();
+    let display_sender = DISPLAY_CHANNEL.sender();
 
     let nvs_storage: &'static Mutex<NoopRawMutex, NonVolatileStorage> =
         &*NVS_STORAGE.init(Mutex::new(NonVolatileStorage::take()));
@@ -114,12 +106,12 @@ async fn main(spawner: Spawner) {
         .await
         .unwrap();
 
-    let broker_channel = BROKER_CHANNEL.take();
-    let writer_channel = WRITER_CHANNEL.take();
+    // let broker_channel = BROKER_CHANNEL.take();
+    // let writer_channel = WRITER_CHANNEL.take();
 
     spawner.must_spawn(broker(
-        broker_channel.receiver(),
-        writer_channel.sender(),
+        BROKER_CHANNEL.receiver(),
+        WRITER_CHANNEL.sender(),
         display_sender,
         nvs_storage,
     ));
@@ -128,14 +120,18 @@ async fn main(spawner: Spawner) {
         &spawner,
         peripherals.UART0,
         &clocks,
-        broker_channel.sender(),
-        writer_channel.receiver(),
+        BROKER_CHANNEL.sender(),
+        WRITER_CHANNEL.receiver(),
         display_sender,
     )
     .await
     .unwrap();
 
-    display_sender.send("Device init done!".into()).await;
+    let mut client = electricity_exhange::client::Client::new(stack);
+
+    electricity_exhange::datetime::setup_datetime(&spawner, &mut client, display_sender).await;
+
+    display_sender.send("Device init done.".into()).await;
 
     // loop {
 

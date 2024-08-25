@@ -1,6 +1,6 @@
 [target.riscv32imc-unknown-none-elf]
 # runner = "probe-rs run --chip esp32c3"
-runner = "espflash flash"
+runner = "espflash flash --baud 921600 --monitor"
 # runner = "espflash flash --monitor"
 # runner = "espflash --format direct-boot --monitor"
 

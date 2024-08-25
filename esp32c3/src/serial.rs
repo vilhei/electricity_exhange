@@ -1,13 +1,12 @@
-use core::{fmt::Write, str::FromStr};
 use embassy_executor::Spawner;
-use embassy_sync::blocking_mutex::raw::{CriticalSectionRawMutex, NoopRawMutex};
+use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 use embassy_sync::channel::{self, Sender};
 use embedded_io_async::Read;
 use esp_hal::peripherals::UART0;
 use esp_hal::uart::{UartRx, UartTx};
 use esp_hal::Async;
 use esp_hal::{clock::Clocks, uart::Uart};
-use heapless::{String, Vec};
+use heapless::Vec;
 use shared::{
     deserialize_crc_cobs, serialize_crc_cobs, DisplayUpdate, Message, Response, MESSAGE_SIZE,
     RESPONSE_SIZE,
@@ -26,8 +25,8 @@ pub async fn setup(
     spawner: &Spawner,
     uart: UART0,
     clocks: &Clocks<'_>,
-    broker_sender: channel::Sender<'static, NoopRawMutex, Message, 10>,
-    writer_receiver: channel::Receiver<'static, NoopRawMutex, Response, 10>,
+    broker_sender: channel::Sender<'static, CriticalSectionRawMutex, Message, 10>,
+    writer_receiver: channel::Receiver<'static, CriticalSectionRawMutex, Response, 10>,
     display_sender: Sender<'static, CriticalSectionRawMutex, DisplayUpdate, 10>,
 ) -> Result<(), SerialError> {
     display_sender.send("Serial init".into()).await;
@@ -46,7 +45,7 @@ pub async fn setup(
 #[embassy_executor::task]
 async fn read_serial(
     mut rx: UartRx<'static, UART0, Async>,
-    broker_sender: channel::Sender<'static, NoopRawMutex, Message, 10>,
+    broker_sender: channel::Sender<'static, CriticalSectionRawMutex, Message, 10>,
     display_sender: Sender<'static, CriticalSectionRawMutex, DisplayUpdate, 10>,
 ) {
     let mut message = Vec::<u8, MESSAGE_SIZE>::new();
@@ -72,7 +71,7 @@ async fn read_serial(
 #[embassy_executor::task]
 async fn write_serial(
     mut tx: UartTx<'static, UART0, Async>,
-    writer_receiver: channel::Receiver<'static, NoopRawMutex, Response, 10>,
+    writer_receiver: channel::Receiver<'static, CriticalSectionRawMutex, Response, 10>,
 ) {
     loop {
         let response = writer_receiver.receive().await;

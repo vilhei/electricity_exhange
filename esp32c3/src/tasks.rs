@@ -1,19 +1,16 @@
-use core::str::FromStr;
-
 use embassy_sync::{
     blocking_mutex::raw::{CriticalSectionRawMutex, NoopRawMutex},
     channel::{Receiver, Sender},
     mutex::Mutex,
 };
-use heapless::String;
 use shared::{DisplayUpdate, Message, Response};
 
 use crate::storage::{NonVolatileKey, NonVolatileStorage};
 
 #[embassy_executor::task]
 pub async fn broker(
-    broker_receiver: Receiver<'static, NoopRawMutex, Message, 10>,
-    serial_writer_sender: Sender<'static, NoopRawMutex, Response, 10>,
+    broker_receiver: Receiver<'static, CriticalSectionRawMutex, Message, 10>,
+    serial_writer_sender: Sender<'static, CriticalSectionRawMutex, Response, 10>,
     display_sender: Sender<'static, CriticalSectionRawMutex, DisplayUpdate, 10>,
     nvs_storage: &'static Mutex<NoopRawMutex, NonVolatileStorage>,
 ) {

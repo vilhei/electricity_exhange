@@ -3,9 +3,9 @@ use esp_wifi::wifi::{WifiDevice, WifiStaDevice};
 use serde::{Deserialize, Serialize};
 use static_cell::StaticCell;
 
-use crate::client::{Client, Ready};
+use crate::client::Client;
 
-static CLIENT: StaticCell<Client<Ready>> = StaticCell::new();
+static CLIENT: StaticCell<Client> = StaticCell::new();
 
 pub fn setup(stack: &'static Stack<WifiDevice<'static, WifiStaDevice>>) -> Result<(), Error> {
     CLIENT.init(Client::new(stack));

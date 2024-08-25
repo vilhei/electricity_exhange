@@ -6,10 +6,18 @@ version = "0.1.0"
 [dependencies]
 shared = { path = "../shared" }
 
+# Embassy
+embassy-net = { version = "0.4.0", features = ["tcp", "dns", "dhcpv4"] }
+embassy-embedded-hal = "0.1.0"
+embassy-executor = { version = "0.5.0", features = [
+    "task-arena-size-81920",
+    "arch-riscv32",
+] }
+embassy-time = { version = "0.3.1", features = ["generic-queue-8"] }
+embassy-sync = "0.6.0"
+
+# Esp
 esp-hal = { version = "0.18.0", features = ["esp32c3", "async"] }
-display-interface-spi = "0.5.0"
-embedded-graphics = "0.8.1"
-embedded-hal-bus = "0.2.0"
 esp-backtrace = { version = "0.12.1", features = [
     "esp32c3",
     "exception-handler",
@@ -17,25 +25,7 @@ esp-backtrace = { version = "0.12.1", features = [
     "println",
 ] }
 esp-println = { version = "0.9.1", features = ["esp32c3", "uart"] }
-fugit = "0.3.7"
-mipidsi = "0.8.0"
-embassy-executor = { version = "0.5.0", features = [
-    "task-arena-size-81920",
-    "arch-riscv32",
-] }
-# embassy-executor = { version = "0.5.0", features = ["nightly", "arch-riscv32"] }
-
-
-embedded-hal-async = "1.0.0"
 esp-hal-embassy = { version = "0.1.0", features = ["esp32c3", "time-timg0"] }
-embassy-time = { version = "0.3.1", features = ["generic-queue-8"] }
-heapless = "0.8.0"
-# embedded-graphics-framebuf = "0.5.0"
-embassy-usb = "0.2.0"
-embedded-io-async = "0.6.1"
-embassy-sync = "0.6.0"
-static_cell = "2.1.0"
-embassy-time-driver = "0.1.0"
 esp-wifi = { version = "0.6.0", features = [
     "embedded-svc",
     "esp32c3",
@@ -45,26 +35,41 @@ esp-wifi = { version = "0.6.0", features = [
     "embassy-net",
 ] }
 
+# Embedded
+embedded-hal-bus = "0.2.0"
+embedded-io-async = "0.6.1"
+critical-section = "1.1.2"
+
+# Display
+mipidsi = "0.8.0"
+embedded-graphics = "0.8.1"
+display-interface-spi = "0.5.0"
+u8g2-fonts = { version = "0.4.0" }
+
+
+# Embedded data structures
+heapless = "0.8.0"
+static_cell = "2.1.0"
+
+# Http
 reqwless = { version = "0.12.0", default-features = false, features = [
     "log",
     "embedded-tls",
 ] }
 
-embassy-net = { version = "0.4.0", features = ["tcp", "dns", "dhcpv4"] }
-embedded-tls = { version = "0.17.0", default-features = false }
-embedded-nal-async = "0.7.1"
-corncobs = "0.1.3"
-display-interface = "0.5.0"
-embedded-hal = "1.0.0"
-u8g2-fonts = { version = "0.4.0" }
-critical-section = "1.1.2"
-sequential-storage = "2.0.2"
-postcard = { version = "1.0.8", features = ["experimental-derive"] }
+# Serialization
 serde = { version = "1.0.204", default-features = false }
+serde-json-core = "0.6.0"
+postcard = { version = "1.0.8", features = ["experimental-derive"] }
+corncobs = "0.1.3"
+
+# Storage
+sequential-storage = "2.0.2"
 esp-storage = { version = "0.3.0", features = ["esp32c3", "nor-flash"] }
-embedded-storage = "0.3.1"
-embassy-embedded-hal = "0.1.0"
-embedded-storage-async = "0.4.1"
+
+# Time stuff
+chrono = { version = "0.4.38", default-features = false, features = ["serde"] }
+chrono-tz = { version = "0.9.0", default-features = false }
 
 # cargo build/run
 [profile.dev]
