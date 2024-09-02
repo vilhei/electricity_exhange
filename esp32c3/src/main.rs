@@ -5,6 +5,7 @@
 
 use display_interface_spi::SPIInterface;
 use electricity_exhange::{
+    client::Client,
     storage::NonVolatileStorage,
     tasks::broker,
     wifi::{self, WifiPeripherals},
@@ -44,6 +45,8 @@ static DISPLAY_CHANNEL: Channel<CriticalSectionRawMutex, DisplayUpdate, 10> = Ch
 
 /// Can be used to access non-volatile storage
 static NVS_STORAGE: StaticCell<Mutex<NoopRawMutex, NonVolatileStorage>> = StaticCell::new();
+
+static CLIENT: StaticCell<Mutex<CriticalSectionRawMutex, Client>> = StaticCell::new();
 
 /// Executor used by display task
 static HIGH_PRIO_EXECUTOR: StaticCell<InterruptExecutor<2>> = StaticCell::new();
@@ -127,9 +130,11 @@ async fn main(spawner: Spawner) {
     .await
     .unwrap();
 
-    let mut client = electricity_exhange::client::Client::new(stack);
+    let client = electricity_exhange::client::Client::new(stack);
 
-    electricity_exhange::datetime::setup_datetime(&spawner, &mut client, display_sender).await;
+    let client = &*CLIENT.init(Mutex::new(client));
+
+    electricity_exhange::local_clock::setup_datetime(&spawner, client, display_sender).await;
 
     display_sender.send("Device init done.".into()).await;
 

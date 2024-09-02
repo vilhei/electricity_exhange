@@ -4,9 +4,9 @@
 use esp_hal::rng::Rng;
 
 pub mod client;
-pub mod datetime;
 pub mod display;
 pub mod http;
+pub mod local_clock;
 pub mod serial;
 pub mod storage;
 pub mod styles;

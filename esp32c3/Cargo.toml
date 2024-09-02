@@ -34,6 +34,7 @@ esp-wifi = { version = "0.6.0", features = [
     "async",
     "embassy-net",
 ] }
+# esp-alloc = { version = "0.4.0" }
 
 # Embedded
 embedded-hal-bus = "0.2.0"
@@ -70,7 +71,8 @@ esp-storage = { version = "0.3.0", features = ["esp32c3", "nor-flash"] }
 # Time stuff
 chrono = { version = "0.4.38", default-features = false, features = ["serde"] }
 chrono-tz = { version = "0.9.0", default-features = false }
-
+#Others
+# quick-xml = { version = "0.36.1", default-features = false, features = ["serialize"] }
 # cargo build/run
 [profile.dev]
 opt-level = "s"

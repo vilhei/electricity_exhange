@@ -39,7 +39,7 @@ pub async fn connect(
     mut rng: Rng,
     wifi_peripherals: WifiPeripherals<'_>,
     display_sender: Sender<'static, CriticalSectionRawMutex, DisplayUpdate, 10>,
-    nvs_storage: &'static Mutex<NoopRawMutex, NonVolatileStorage>,
+    nvs_storage: &Mutex<NoopRawMutex, NonVolatileStorage>,
 ) -> Result<&'static Stack<WifiDevice<'static, WifiStaDevice>>, Error> {
     display_sender.send("started Wifi init".into()).await;
 
@@ -67,29 +67,31 @@ pub async fn connect(
     let stack = &*STACK.init(stack);
 
     // Use scope so that mutex guard is dropped
+    let wifi_password;
+    let wifi_ssid;
     {
         let mut guard = nvs_storage.lock().await;
-        let wifi_password = guard
+        wifi_password = guard
             .fetch(NonVolatileKey::WifiPassword)
             .await
             .unwrap()
             .unwrap()
             .0;
-        let wifi_ssid = guard
+        wifi_ssid = guard
             .fetch(NonVolatileKey::WifiSsid)
             .await
             .unwrap()
             .unwrap()
             .0;
-
-        // Todo remove showing wifi credentials in final build
-        let mut msg = String::<64>::new();
-
-        write!(msg, "{wifi_ssid}\n************",).unwrap();
-        display_sender.send(msg.as_str().into()).await;
-
-        spawner.must_spawn(connection(controller, wifi_password, wifi_ssid));
     }
+
+    // Todo remove showing wifi credentials in final build
+    let mut msg = String::<64>::new();
+
+    write!(msg, "Wifi: {wifi_ssid}").unwrap();
+    display_sender.send(msg.as_str().into()).await;
+
+    spawner.must_spawn(connection(controller, wifi_password, wifi_ssid));
 
     spawner.must_spawn(net_task(stack));
 

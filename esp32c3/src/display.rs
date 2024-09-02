@@ -30,7 +30,7 @@ use u8g2_fonts::{
 };
 
 use crate::{
-    datetime::month_name_short,
+    local_clock::month_name_short,
     styles::{FONT1_NORMAL, FONT1_SMALL},
 };
 
@@ -118,12 +118,12 @@ async fn update_display(
     }
 }
 
-fn update_datetime<D, E>(display: &mut D, t: u64)
+fn update_datetime<D, E>(display: &mut D, date: chrono::DateTime<chrono_tz::Tz>)
 where
     D: DrawTarget<Color = Rgb565, Error = E>,
     E: Debug,
 {
-    let date = chrono::DateTime::from_timestamp_millis(t as i64 * 1000).unwrap(); // u64 to i64 could overflow
+    // let date = chrono::DateTime::from_timestamp_millis(t as i64 * 1000).unwrap(); // u64 to i64 could overflow
     let mut content = String::<64>::new();
     let month = month_name_short(date.month());
     write!(

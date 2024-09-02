@@ -1,36 +1,54 @@
+use crate::client::Client;
+use chrono::TimeZone;
 use embassy_executor::Spawner;
-use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, channel::Sender};
+use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, channel::Sender, mutex::Mutex};
 use embassy_time::{Duration, Instant, Ticker};
 use esp_println::dbg;
 use serde::Deserialize;
 use shared::DisplayUpdate;
 
 #[derive(Debug)]
-struct DateTime {
+pub struct LocalClock {
     /// Time the device booted as unix timestamp in UTC time in seconds
     boot_time: u64,
     /// Offset from UTC in seconds
-    offset: u64,
+    timezone: chrono_tz::Tz,
 }
 
-impl DateTime {
+impl LocalClock {
     pub fn new(curr_time: u64) -> Self {
-        Self::with_offset(curr_time, 0)
+        Self::with_offset(curr_time, chrono_tz::UTC)
     }
 
-    fn with_offset(unix_time_utc: u64, offset: u64) -> Self {
+    fn with_offset(unix_time_utc: u64, offset: chrono_tz::Tz) -> Self {
         let boot_time = unix_time_utc - Instant::now().as_secs();
-        Self { boot_time, offset }
+        Self {
+            boot_time,
+            timezone: offset,
+        }
     }
 
     /// Returns time as UTC unix timestamp as seconds
+    #[inline]
     fn now(&self) -> u64 {
         let from_boot = Instant::now().as_secs();
         self.boot_time + from_boot
     }
 
-    fn now_local(&self) -> u64 {
-        self.now() + self.offset
+    /// Returns unix timestamp in local time
+    #[inline]
+    pub fn now_local(&self) -> u64 {
+        self.timezone
+            .timestamp_millis_opt(self.now() as i64 * 1000)
+            .unwrap()
+            .timestamp() as u64
+    }
+
+    pub fn get_time(&self) -> chrono::DateTime<chrono_tz::Tz> {
+        // Todo get timezone from somewhere
+        self.timezone
+            .timestamp_millis_opt(self.now() as i64 * 1000)
+            .unwrap()
     }
 }
 // use chrono::serde::ts_seconds;
@@ -44,11 +62,11 @@ struct WorlTimeApiResponse {
     // datetime: chrono::DateTime<T>,
     // utc_datetime: chrono::DateTime<Utc>,
     unixtime: u64,
-    raw_offset: u32,
+    // raw_offset: u32,
     // week_number:,
     // dst: bool,
     // abbreviation:,
-    dst_offset: u32,
+    // dst_offset: u32,
     // dst_from:,
     // dst_until:,
     // client_ip:,
@@ -56,33 +74,36 @@ struct WorlTimeApiResponse {
 
 pub async fn setup_datetime(
     spawner: &Spawner,
-    client: &mut crate::client::Client<'_>,
+    client: &Mutex<CriticalSectionRawMutex, Client<'_>>,
     display_sender: Sender<'static, CriticalSectionRawMutex, DisplayUpdate, 10>,
 ) {
-    let response = client.fetch_local_time(chrono_tz::Europe::Helsinki).await;
-    // println!("{:?}", response);
-    // println!("{:?}", from_utf8(response).unwrap());
-    let (t, _) = serde_json_core::from_slice::<WorlTimeApiResponse>(response).unwrap();
+    let timezone = chrono_tz::Europe::Helsinki;
+    let t;
+    {
+        let mut client_guard = client.lock().await;
+        let response = client_guard.fetch_local_time(timezone).await;
+        (t, _) = serde_json_core::from_slice::<WorlTimeApiResponse>(response).unwrap();
+    }
+    // let offset = t.raw_offset + t.dst_offset;
 
-    let offset = t.raw_offset + t.dst_offset;
-    dbg!(offset);
-    dbg!(t.unixtime);
-    let datetime = DateTime::with_offset(t.unixtime, offset as u64);
-    dbg!(&datetime);
-    spawner.must_spawn(update_time(display_sender, datetime));
+    let local_clock = LocalClock::with_offset(t.unixtime, timezone);
+
+    dbg!(&local_clock);
+
+    spawner.must_spawn(update_time(display_sender, local_clock));
 }
 
 #[embassy_executor::task]
 pub async fn update_time(
     display_sender: Sender<'static, CriticalSectionRawMutex, DisplayUpdate, 10>,
-    datetime: DateTime,
+    local_clock: LocalClock,
 ) {
     let mut ticker = Ticker::every(Duration::from_secs(1));
 
     loop {
-        let curr_time = datetime.now_local();
-        // dbg!(curr_time);
-        display_sender.send(DisplayUpdate::SetTime(curr_time)).await;
+        display_sender
+            .send(DisplayUpdate::SetTime(local_clock.get_time()))
+            .await;
         ticker.next().await;
     }
 }

@@ -44,6 +44,7 @@ impl<'a> Client<'a> {
         // let mut read_record_buffer = [0_u8; 16640];
         // let mut write_record_buffer = [0_u8; 16640];
 
+        // TODO figure out safe way for read and write buffers? And maybe find out what tls is :)
         let tls_config = reqwless::client::TlsConfig::new(
             0,
             unsafe { &mut *core::ptr::addr_of_mut!(READ_RECORD_BUFFER) },
@@ -77,6 +78,10 @@ impl Client<'_> {
         self.get_request(url.as_str()).await
     }
 
+    #[allow(unused)]
+    pub async fn fetch_todays_spot_price(token: &str) -> &str {
+        todo!()
+    }
 
     pub async fn get_request_str(&mut self, url: &str) -> &str {
         let mut request = self

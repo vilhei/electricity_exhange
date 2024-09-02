@@ -1,4 +1,4 @@
-use core::{convert::From, str::FromStr};
+use core::{convert::From, ops::Deref, str::FromStr};
 
 use embassy_embedded_hal::adapter::BlockingAsync;
 use esp_storage::FlashStorage;
@@ -138,6 +138,14 @@ impl<'a> sequential_storage::map::Value<'a> for NonVolatileItem {
 impl AsRef<str> for NonVolatileItem {
     fn as_ref(&self) -> &str {
         self.0.as_str()
+    }
+}
+
+impl Deref for NonVolatileItem {
+    type Target = String<64>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 
