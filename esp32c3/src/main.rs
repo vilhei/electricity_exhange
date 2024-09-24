@@ -6,7 +6,7 @@
 use display_interface_spi::SPIInterface;
 use electricity_exhange::{
     client::Client,
-    storage::NonVolatileStorage,
+    storage::{NonVolatileKey::EntsoeApiKey, NonVolatileStorage},
     tasks::broker,
     wifi::{self, WifiPeripherals},
 };
@@ -29,6 +29,8 @@ use esp_hal::{
     timer::timg::TimerGroup,
 };
 use esp_hal_embassy::InterruptExecutor;
+use esp_println::println;
+// use esp_println::println;
 use shared::{DisplayUpdate, Message, Response};
 use static_cell::StaticCell;
 
@@ -57,9 +59,10 @@ async fn main(spawner: Spawner) {
     let system = SystemControl::new(peripherals.SYSTEM);
     let clocks = ClockControl::max(system.clock_control).freeze();
 
-    let timg0 = TimerGroup::new_async(peripherals.TIMG0, &clocks);
-    esp_hal_embassy::init(&clocks, timg0);
+    let timg0 = TimerGroup::new(peripherals.TIMG0, &clocks);
+    esp_hal_embassy::init(&clocks, timg0.timer0);
 
+    // println!("Hello");
     let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
 
     let sclk = io.pins.gpio12;
@@ -98,8 +101,9 @@ async fn main(spawner: Spawner) {
     let nvs_storage: &'static Mutex<NoopRawMutex, NonVolatileStorage> =
         &*NVS_STORAGE.init(Mutex::new(NonVolatileStorage::take()));
 
+    let timg1 = TimerGroup::new(peripherals.TIMG1, &clocks);
     let wifi_peripherals = WifiPeripherals {
-        systimer: peripherals.SYSTIMER,
+        timer: timg1.timer0.into(),
         radio_clk: peripherals.RADIO_CLK,
         clocks: &clocks,
         wifi: peripherals.WIFI,
@@ -122,6 +126,8 @@ async fn main(spawner: Spawner) {
     electricity_exhange::serial::setup(
         &spawner,
         peripherals.UART0,
+        io.pins.gpio11,
+        io.pins.gpio9,
         &clocks,
         BROKER_CHANNEL.sender(),
         WRITER_CHANNEL.receiver(),
@@ -129,17 +135,28 @@ async fn main(spawner: Spawner) {
     )
     .await
     .unwrap();
+    // println!("Hello2");
 
-    let client = electricity_exhange::client::Client::new(stack);
+    let rsa = peripherals.RSA;
+    let client = electricity_exhange::client::Client::new(stack, rsa);
 
+    display_sender.send("Client init done1".into()).await;
     let client = &*CLIENT.init(Mutex::new(client));
+    {
+        let mut guard = client.lock().await;
+        let token = nvs_storage
+            .lock()
+            .await
+            .fetch(EntsoeApiKey)
+            .await
+            .unwrap()
+            .unwrap();
+
+        let prices = guard.fetch_todays_spot_price(&token).await;
+        println!("{prices:#?}")
+    }
 
     electricity_exhange::local_clock::setup_datetime(&spawner, client, display_sender).await;
 
     display_sender.send("Device init done.".into()).await;
-
-    // loop {
-
-    //     Timer::after(Duration::from_millis(500)).await;
-    // }
 }

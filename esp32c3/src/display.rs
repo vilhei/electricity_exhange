@@ -1,7 +1,6 @@
 use chrono::{Datelike, Timelike};
 use core::fmt::{Debug, Write};
 use display_interface_spi::SPIInterface;
-use embassy_executor::SendSpawner;
 use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, channel::Receiver};
 use embassy_time::Delay;
 use embedded_graphics::{
@@ -45,7 +44,7 @@ type DisplaySpiInterface = SPIInterface<
 //     U8g2TextStyle::new(fonts::u8g2_font_helvR18_tf, Rgb565::RED);
 
 pub fn setup(
-    spawner: &SendSpawner,
+    spawner: &embassy_executor::SendSpawner,
     di: DisplaySpiInterface,
     rst: Output<'static, Gpio8>,
     receiver: Receiver<'static, CriticalSectionRawMutex, DisplayUpdate, 10>,

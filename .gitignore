@@ -1,3 +1,4 @@
 debug/
 target/
 **/logs
+api_testing/

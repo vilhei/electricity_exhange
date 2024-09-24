@@ -77,7 +77,7 @@ pub enum DisplayUpdate {
     StatusUpdate(String<64>),
     Fill(Rgb565),
     SetBrightness(DisplayBrightness),
-    SetTime(u64),
+    SetTime(chrono::DateTime<chrono_tz::Tz>),
 }
 
 impl From<&str> for DisplayUpdate {

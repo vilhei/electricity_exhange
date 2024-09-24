@@ -8,6 +8,7 @@ use embassy_sync::mutex::Mutex;
 use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, channel::Sender};
 use embassy_time::{Duration, Timer};
 use esp_hal::timer::systimer::SystemTimer;
+use esp_hal::timer::ErasedTimer;
 use esp_hal::{
     clock::Clocks,
     peripherals::{RADIO_CLK, SYSTIMER, WIFI},
@@ -28,7 +29,7 @@ static STACK_RESOURCES: StaticCell<StackResources<3>> = StaticCell::new();
 static STACK: StaticCell<Stack<WifiDevice<'static, WifiStaDevice>>> = StaticCell::new();
 
 pub struct WifiPeripherals<'a> {
-    pub systimer: SYSTIMER,
+    pub timer: ErasedTimer,
     pub radio_clk: RADIO_CLK,
     pub clocks: &'a Clocks<'a>,
     pub wifi: WIFI,
@@ -46,10 +47,11 @@ pub async fn connect(
     let seed = generate_rand_u64(&mut rng);
 
     // WIFI stuff
-    let timer = SystemTimer::new(wifi_peripherals.systimer).alarm0;
+    // let timer = SystemTimer::new(wifi_peripherals.systimer);
+
     let init = esp_wifi::initialize(
         EspWifiInitFor::Wifi,
-        timer,
+        wifi_peripherals.timer,
         rng,
         wifi_peripherals.radio_clk,
         wifi_peripherals.clocks,

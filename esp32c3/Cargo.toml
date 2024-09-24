@@ -8,25 +8,28 @@ shared = { path = "../shared" }
 
 # Embassy
 embassy-net = { version = "0.4.0", features = ["tcp", "dns", "dhcpv4"] }
-embassy-embedded-hal = "0.1.0"
-embassy-executor = { version = "0.5.0", features = [
+embassy-embedded-hal = "0.2.0"
+embassy-executor = { version = "0.6.0", features = [
     "task-arena-size-81920",
     "arch-riscv32",
 ] }
-embassy-time = { version = "0.3.1", features = ["generic-queue-8"] }
+embassy-time = { version = "0.3.2", features = ["generic-queue-8"] }
 embassy-sync = "0.6.0"
 
 # Esp
-esp-hal = { version = "0.18.0", features = ["esp32c3", "async"] }
-esp-backtrace = { version = "0.12.1", features = [
+esp-hal = { version = "0.20.1", features = ["esp32c3", "async"] }
+esp-backtrace = { version = "0.14", features = [
     "esp32c3",
     "exception-handler",
     "panic-handler",
     "println",
 ] }
-esp-println = { version = "0.9.1", features = ["esp32c3", "uart"] }
-esp-hal-embassy = { version = "0.1.0", features = ["esp32c3", "time-timg0"] }
-esp-wifi = { version = "0.6.0", features = [
+esp-println = { version = "0.11", default-features = false, features = [
+    "esp32c3",
+    "uart",
+] }
+esp-hal-embassy = { version = "0.3.0", features = ["esp32c3"] }
+esp-wifi = { version = "0.8.0", features = [
     "embedded-svc",
     "esp32c3",
     "tcp",
@@ -53,10 +56,19 @@ heapless = "0.8.0"
 static_cell = "2.1.0"
 
 # Http
-reqwless = { version = "0.12.0", default-features = false, features = [
+# reqwless = { version = "0.12.0", default-features = false, features = [
+#     "log",
+#     "embedded-tls",
+# ] }
+reqwless = { git = "https://github.com/drogue-iot/reqwless", rev = "889c6e738f839cc894b61c45bbaab95899c58737", default-features = false, features = [
+    "esp-mbedtls",
     "log",
-    "embedded-tls",
 ] }
+esp-mbedtls = { git = "https://github.com/esp-rs/esp-mbedtls.git", features = [
+    "esp32c3",
+    "async",
+] }
+
 
 # Serialization
 serde = { version = "1.0.204", default-features = false }

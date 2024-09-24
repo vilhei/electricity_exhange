@@ -2,6 +2,7 @@ use embassy_executor::Spawner;
 use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 use embassy_sync::channel::{self, Sender};
 use embedded_io_async::Read;
+use esp_hal::gpio::{Gpio11, Gpio9};
 use esp_hal::peripherals::UART0;
 use esp_hal::uart::{UartRx, UartTx};
 use esp_hal::Async;
@@ -21,17 +22,20 @@ use shared::{
 /// # Errors
 ///
 /// This function will return an error if spawning a task fails.
+#[allow(clippy::too_many_arguments)]
 pub async fn setup(
     spawner: &Spawner,
     uart: UART0,
-    clocks: &Clocks<'_>,
+    rx_pin: Gpio11,
+    tx_pin: Gpio9,
+    clocks: &Clocks<'static>,
     broker_sender: channel::Sender<'static, CriticalSectionRawMutex, Message, 10>,
     writer_receiver: channel::Receiver<'static, CriticalSectionRawMutex, Response, 10>,
     display_sender: Sender<'static, CriticalSectionRawMutex, DisplayUpdate, 10>,
 ) -> Result<(), SerialError> {
     display_sender.send("Serial init".into()).await;
 
-    let uart = Uart::new_async(uart, clocks);
+    let uart = Uart::new_async(uart, clocks, tx_pin, rx_pin).unwrap();
     let (tx, rx) = uart.split();
 
     spawner.spawn(read_serial(rx, broker_sender, display_sender))?;

@@ -26,7 +26,7 @@ use tracing::initialize_logging;
 use ui_event::handle_event;
 // use update::UiMessage;
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main2() -> Result<(), Box<dyn Error>> {
     initialize_logging()?;
     install_panic_hook().unwrap();
 
@@ -51,7 +51,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 #[allow(unused)]
-fn main2() {
+fn main() {
     let ports = serialport::available_ports().expect("No ports found");
     // for p in ports {
     //     println!("{}", p.port_name);
